@@ -40,15 +40,23 @@
                             <div class="mt-6 space-y-3">
                                 @forelse ($dailyHabits as $habit)
                                     @php($isDone = in_array($habit->id, $completedHabitIds, true))
-                                    <form method="POST" action="{{ route('habits.toggle', $habit) }}" class="group">
-                                        @csrf
-                                        <label class="flex items-center justify-between gap-4 rounded-2xl border border-[#2B3E51]/10 bg-white/60 px-4 py-3 shadow-sm transition hover:bg-white/80">
-                                            <div class="flex items-center gap-3">
-                                                <input type="checkbox" @checked($isDone) onchange="this.form.submit()" class="h-5 w-5 rounded border-[#2B3E51]/20 text-[#377991] shadow-sm focus:ring-[#377991]/30" />
-                                                <div>
-                                                    <div class="font-medium text-[#2B3E51] {{ $isDone ? 'line-through opacity-70' : '' }}">
-                                                        {{ $habit->name }}
-                                                    </div>
+                                    <form method="POST"
+      action="{{ route('habits.complete', $habit) }}"
+      enctype="multipart/form-data">
+    @csrf
+
+    <input
+        type="file"
+        name="photo"
+        accept="image/jpeg,image/png,image/webp"
+        capture="environment"
+        required
+    >
+
+    <button type="submit">
+        Submit photo for checking
+    </button>
+</form>
                                                     <div class="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-[#2B3E51]/60">
                                                         <span>{{ $today->format('D, M j') }}</span>
                                                         @if ($habit->category)

@@ -21,6 +21,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/habits/{habit}', [HabitController::class, 'update'])->name('habits.update');
     Route::delete('/habits/{habit}', [HabitController::class, 'destroy'])->name('habits.destroy');
     Route::post('/habits/{habit}/toggle', [HabitCompletionController::class, 'toggle'])->name('habits.toggle');
+    Route::post('/habits/{habit}/complete-with-photo', [HabitCompletionController::class, 'submitPhoto'])
+    ->name('habits.complete');
 
     Route::get('/history', HistoryController::class)->name('history');
 });

@@ -22,7 +22,16 @@ class HabitCompletion extends Model
     protected function casts(): array
     {
         return [
-            'completed_on' => 'date',
+            #[Fillable([
+    'habit_id',
+    'user_id',
+    'completed_on',
+    'photo_path',
+    'ai_status',
+    'ai_reason',
+    'ai_result',
+    'analyzed_at',
+])]
         ];
     }
 
