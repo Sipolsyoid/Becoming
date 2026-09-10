@@ -8,7 +8,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['habit_id', 'user_id', 'completed_on'])]
+#[Fillable([
+    'habit_id',
+    'user_id',
+    'completed_on',
+    'photo_path',
+    'ai_status',
+    'ai_reason',
+    'ai_result',
+    'analyzed_at',
+])]
 class HabitCompletion extends Model
 {
     /** @use HasFactory<HabitCompletionFactory> */
@@ -22,16 +31,9 @@ class HabitCompletion extends Model
     protected function casts(): array
     {
         return [
-            #[Fillable([
-    'habit_id',
-    'user_id',
-    'completed_on',
-    'photo_path',
-    'ai_status',
-    'ai_reason',
-    'ai_result',
-    'analyzed_at',
-])]
+            'completed_on' => 'date',
+            'ai_result' => 'array',
+            'analyzed_at' => 'datetime',
         ];
     }
 
@@ -51,4 +53,3 @@ class HabitCompletion extends Model
         return $this->belongsTo(User::class);
     }
 }
-

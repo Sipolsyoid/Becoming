@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('habit_completions', function (Blueprint $table) {
-    $table->string('photo_path')->nullable()->after('completed_on');
-    $table->string('ai_status', 20)->default('pending')->after('photo_path');
-    $table->text('ai_reason')->nullable()->after('ai_status');
-    $table->json('ai_result')->nullable()->after('ai_reason');
-    $table->timestamp('analyzed_at')->nullable()->after('ai_result');
-});
+            $table->string('photo_path')->nullable()->after('completed_on');
+            $table->string('ai_status', 20)->default('pending')->after('photo_path');
+            $table->text('ai_reason')->nullable()->after('ai_status');
+            $table->json('ai_result')->nullable()->after('ai_reason');
+            $table->timestamp('analyzed_at')->nullable()->after('ai_result');
+        });
     }
 
     /**
@@ -26,7 +26,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('habit_completions', function (Blueprint $table) {
-            //
+            $table->dropColumn([
+                'photo_path',
+                'ai_status',
+                'ai_reason',
+                'ai_result',
+                'analyzed_at',
+            ]);
         });
     }
 };

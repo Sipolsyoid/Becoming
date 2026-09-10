@@ -37,42 +37,48 @@
                             </div>
                             <div class="mt-2 text-xs text-[#2B3E51]/60">{{ $progressPercent }}% {{ __('complete') }}</div>
 
+                            @if (session('status'))
+                                <div class="mt-4 rounded-xl bg-[#5DA068]/15 px-4 py-3 text-sm text-[#2B3E51]">
+                                    {{ session('status') }}
+                                </div>
+                            @endif
+
+                            @if ($errors->has('photo'))
+                                <div class="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                                    {{ $errors->first('photo') }}
+                                </div>
+                            @endif
+
                             <div class="mt-6 space-y-3">
                                 @forelse ($dailyHabits as $habit)
                                     @php($isDone = in_array($habit->id, $completedHabitIds, true))
-                                    <form method="POST"
-      action="{{ route('habits.complete', $habit) }}"
-      enctype="multipart/form-data">
-    @csrf
-
-    <input
-        type="file"
-        name="photo"
-        accept="image/jpeg,image/png,image/webp"
-        capture="environment"
-        required
-    >
-
-    <button type="submit">
-        Submit photo for checking
-    </button>
-</form>
-                                                    <div class="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-[#2B3E51]/60">
-                                                        <span>{{ $today->format('D, M j') }}</span>
-                                                        @if ($habit->category)
-                                                            <span class="inline-flex items-center rounded-full bg-[#76C7B7]/20 px-2 py-0.5 text-xs font-medium text-[#2B3E51]/80">
-                                                                {{ $habit->category }}
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
+                                    <div class="flex flex-col gap-4 rounded-2xl border border-[#2B3E51]/10 bg-white/60 px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <div class="font-medium text-[#2B3E51] {{ $isDone ? 'line-through opacity-70' : '' }}">
+                                                {{ $habit->name }}
                                             </div>
-
-                                            <div class="text-xs font-medium {{ $isDone ? 'text-[#5DA068]' : 'text-[#2B3E51]/50' }}">
-                                                {{ $isDone ? __('Done') : __('Not yet') }}
+                                            <div class="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-[#2B3E51]/60">
+                                                <span>{{ $today->format('D, M j') }}</span>
+                                                @if ($habit->category)
+                                                    <span class="inline-flex items-center rounded-full bg-[#76C7B7]/20 px-2 py-0.5 font-medium text-[#2B3E51]/80">
+                                                        {{ $habit->category }}
+                                                    </span>
+                                                @endif
                                             </div>
-                                        </label>
-                                    </form>
+                                        </div>
+
+                                        @if ($isDone)
+                                            <span class="text-xs font-medium text-[#5DA068]">{{ __('Done') }}</span>
+                                        @else
+                                            <form method="POST" action="{{ route('habits.complete', $habit) }}" enctype="multipart/form-data" class="flex flex-col gap-2 sm:items-end">
+                                                @csrf
+                                                <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="environment" required class="block w-full text-xs text-[#2B3E51] sm:w-56">
+                                                <button type="submit" class="rounded-xl bg-[#377991] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#2B3E51]">
+                                                    {{ __('Check photo') }}
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
                                 @empty
                                     <div class="rounded-2xl border border-dashed border-[#2B3E51]/20 bg-white/50 p-8 text-center">
                                         <p class="text-sm text-[#2B3E51]/70">

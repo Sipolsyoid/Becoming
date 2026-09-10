@@ -30,6 +30,7 @@ class HabitMetrics
         }
 
         return $user->habitCompletions()
+            ->where('ai_status', 'approved')
             ->whereIn('habit_id', $habitIds)
             ->where('completed_on', $date->toDateString())
             ->pluck('habit_id')
@@ -48,6 +49,7 @@ class HabitMetrics
         }
 
         $rows = $user->habitCompletions()
+            ->where('ai_status', 'approved')
             ->whereIn('habit_id', $habitIds)
             ->whereBetween('completed_on', [$start->toDateString(), $end->toDateString()])
             ->get(['completed_on']);
@@ -73,6 +75,7 @@ class HabitMetrics
         }
 
         $rows = $user->habitCompletions()
+            ->where('ai_status', 'approved')
             ->whereIn('habit_id', $habitIds)
             ->whereBetween('completed_on', [$start->toDateString(), $end->toDateString()])
             ->get(['habit_id']);
@@ -135,4 +138,3 @@ class HabitMetrics
         return $best;
     }
 }
-
