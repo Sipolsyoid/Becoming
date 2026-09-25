@@ -14,8 +14,7 @@ class HabitCompletionController extends Controller
         Request $request,
         Habit $habit,
         HabitPhotoVerifier $verifier,
-    ): RedirectResponse
-    {
+    ): RedirectResponse {
         abort_unless($habit->user_id === $request->user()->id, 404);
 
         $validated = $request->validate([
@@ -33,7 +32,18 @@ class HabitCompletionController extends Controller
 
         $previousPhotoPath = $existing?->photo_path;
         $photo = $validated['photo'];
-        $path = $photo->store("habit-proofs/{$user->id}", 'local');
+        try {
+            $path = $photo->store("habit-proofs/{$user->id}", 'local');
+        } catch (\Throwable $exception) {
+            report($exception);
+            $path = false;
+        }
+
+        if (! is_string($path) || $path === '') {
+            return back()->withErrors([
+                'photo' => 'The photo could not be saved. Please try again.',
+            ]);
+        }
 
         try {
             $result = $verifier->verify($photo, $habit->name);
@@ -52,11 +62,8 @@ class HabitCompletionController extends Controller
                 ],
             );
 
-            if ($previousPhotoPath && $previousPhotoPath !== $path) {
-                Storage::disk('local')->delete($previousPhotoPath);
-            }
         } catch (\Throwable $exception) {
-            Storage::disk('local')->delete($path);
+            $this->deletePhoto($path);
             report($exception);
 
             return back()->withErrors([
@@ -66,11 +73,27 @@ class HabitCompletionController extends Controller
             ]);
         }
 
+        // Cleanup failure must not remove the newly saved proof or undo a valid verdict.
+        if ($previousPhotoPath && $previousPhotoPath !== $path) {
+            $this->deletePhoto($previousPhotoPath);
+        }
+
         return back()->with(
             'status',
             $result['decision'] === 'approved'
                 ? 'Photo approved — habit completed.'
                 : 'Photo needs another check: '.$result['reason'],
         );
+    }
+
+    private function deletePhoto(string $path): void
+    {
+        try {
+            if (! Storage::disk('local')->delete($path)) {
+                report(new \RuntimeException('A habit proof could not be deleted from storage.'));
+            }
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
     }
 }

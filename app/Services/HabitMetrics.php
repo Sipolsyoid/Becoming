@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Habit;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -9,7 +10,7 @@ use Illuminate\Support\Collection;
 class HabitMetrics
 {
     /**
-     * @return Collection<int, \App\Models\Habit>
+     * @return Collection<int, Habit>
      */
     public function dailyHabits(User $user): Collection
     {
@@ -52,13 +53,15 @@ class HabitMetrics
             ->where('ai_status', 'approved')
             ->whereIn('habit_id', $habitIds)
             ->whereBetween('completed_on', [$start->toDateString(), $end->toDateString()])
-            ->get(['completed_on']);
+            ->selectRaw('completed_on, COUNT(*) as completion_count')
+            ->groupBy('completed_on')
+            ->toBase()
+            ->get();
 
         $counts = [];
 
         foreach ($rows as $row) {
-            $dateKey = $row->completed_on->toDateString();
-            $counts[$dateKey] = ($counts[$dateKey] ?? 0) + 1;
+            $counts[$row->completed_on] = (int) $row->completion_count;
         }
 
         return $counts;
@@ -78,13 +81,16 @@ class HabitMetrics
             ->where('ai_status', 'approved')
             ->whereIn('habit_id', $habitIds)
             ->whereBetween('completed_on', [$start->toDateString(), $end->toDateString()])
-            ->get(['habit_id']);
+            ->selectRaw('habit_id, COUNT(*) as completion_count')
+            ->groupBy('habit_id')
+            ->toBase()
+            ->get();
 
         $counts = array_fill_keys($habitIds, 0);
 
         foreach ($rows as $row) {
             $habitId = (int) $row->habit_id;
-            $counts[$habitId] = ($counts[$habitId] ?? 0) + 1;
+            $counts[$habitId] = (int) $row->completion_count;
         }
 
         return $counts;
@@ -104,6 +110,7 @@ class HabitMetrics
 
             if ($count >= $totalHabits) {
                 $streak++;
+
                 continue;
             }
 
@@ -129,6 +136,7 @@ class HabitMetrics
             if ($count >= $totalHabits) {
                 $current++;
                 $best = max($best, $current);
+
                 continue;
             }
 

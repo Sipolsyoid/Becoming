@@ -11,7 +11,7 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden space-x-8 lg:-my-px lg:ms-10 lg:flex">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
@@ -27,7 +27,7 @@
                 </div>
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden lg:flex lg:items-center lg:ms-6">
                 <div class="flex items-center gap-4">
                     <div class="text-sm font-medium text-[#2B3E51]/80">
                         {{ __('Welcome, :name', ['name' => Auth::user()->name]) }}
@@ -43,8 +43,8 @@
             </div>
 
             <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center rounded-xl p-2 text-[#2B3E51]/70 hover:bg-white/60 hover:text-[#2B3E51] focus:outline-none focus:ring-2 focus:ring-[#377991]/40 transition duration-150 ease-in-out">
+            <div class="-me-2 flex items-center lg:hidden">
+                <button type="button" aria-label="Toggle navigation" :aria-expanded="open.toString()" aria-controls="mobile-navigation" @click="open = ! open" class="inline-flex items-center justify-center rounded-xl p-2 text-[#2B3E51]/70 hover:bg-white/60 hover:text-[#2B3E51] focus:outline-none focus:ring-2 focus:ring-[#377991]/40 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -55,7 +55,7 @@
     </div>
 
     <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+    <div id="mobile-navigation" :class="{'block': open, 'hidden': ! open}" class="hidden lg:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}

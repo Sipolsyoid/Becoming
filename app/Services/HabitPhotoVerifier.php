@@ -76,9 +76,17 @@ class HabitPhotoVerifier
             throw new RuntimeException('The AI response did not contain a verdict.');
         }
 
-        $result = json_decode($text, true, 512, JSON_THROW_ON_ERROR);
+        try {
+            $result = json_decode($text, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $exception) {
+            throw new RuntimeException('The AI response contained an invalid verdict.', 0, $exception);
+        }
 
-        if (! in_array($result['decision'] ?? null, ['approved', 'needs_review', 'rejected'], true)) {
+        if (! is_array($result)
+            || count($result) !== 3
+            || ! in_array($result['decision'] ?? null, ['approved', 'needs_review', 'rejected'], true)
+            || ! is_string($result['reason'] ?? null)
+            || ! is_string($result['visible_evidence'] ?? null)) {
             throw new RuntimeException('The AI response contained an invalid verdict.');
         }
 
