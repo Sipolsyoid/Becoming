@@ -25,10 +25,15 @@ Verification is synchronous, with a 180-second HTTP timeout. Only `approved` res
 
 ## Verification
 
+- `node --test tests/js/photo-proof.test.js`: photo selection, client validation and duplicate-submit protection.
 - `php artisan test`: authentication and habit workflows, ownership, photo validation/retries, failure handling, statistics and streaks. Tests use a separate in-memory SQLite database.
 - `npm run build`: compile production assets.
 - `composer check-platform-reqs`: check installed PHP requirements.
 
 Dates use UTC. Historical percentages use the current daily-habit set, and the current streak is zero until today is complete, as specified in the Becoming documentation. Deleting a habit removes its database completions but retains photo files, also as documented.
+
+## Interface update
+
+The September 2026 interface adds local photo previews, file guidance, a waiting message during synchronous verification, and success feedback for habit changes. This extends the original FP-08 interface description, which said there was no preview or waiting state. The server still validates every upload and the completion rules are unchanged. Progress charts show actual zero-height bars for 0%, and history distinguishes today in progress from complete and incomplete days.
 
 The environment template uses file caching and log mail for local development. Configure production credentials, HTTPS and `APP_DEBUG=false` before deployment. Never commit `.env`.

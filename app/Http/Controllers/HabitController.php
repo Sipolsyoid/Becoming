@@ -44,7 +44,7 @@ class HabitController extends Controller
             'is_daily' => $request->boolean('is_daily'),
         ]);
 
-        return redirect()->route('habits.index');
+        return redirect()->route('habits.index')->with('status', 'Habit added. Your next small step is ready.');
     }
 
     public function update(Request $request, Habit $habit): RedirectResponse
@@ -59,7 +59,7 @@ class HabitController extends Controller
             'is_daily' => (bool) $validated['is_daily'],
         ]);
 
-        return back();
+        return back()->with('status', $habit->is_daily ? 'Habit added to your daily list.' : 'Habit removed from your daily list. It is still in your collection.');
     }
 
     public function destroy(Request $request, Habit $habit): RedirectResponse
@@ -68,7 +68,7 @@ class HabitController extends Controller
 
         $habit->delete();
 
-        return back();
+        return back()->with('status', 'Habit and completion history deleted.');
     }
 }
 

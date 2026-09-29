@@ -1,8 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-[#2B3E51] leading-tight">
+        <h1 class="font-semibold text-xl text-[#2B3E51] leading-tight">
             {{ __('Progress') }}
-        </h2>
+        </h1>
     </x-slot>
 
     <div class="py-10">
@@ -15,7 +15,7 @@
                             <div class="text-4xl font-semibold tracking-tight text-[#2B3E51]">{{ $weeklyPercent }}%</div>
                             <div class="text-sm text-[#2B3E51]/60">{{ __('last 7 days') }}</div>
                         </div>
-                        <p class="mt-3 text-sm text-[#2B3E51]/70">{{ __('Keep it simple: small wins add up.') }}</p>
+                        <p class="mt-3 text-sm text-[#2B3E51]/70">{{ __('Approved completions across your current daily habits.') }}</p>
                     </div>
                 </div>
 
@@ -26,7 +26,7 @@
                             <div class="text-4xl font-semibold tracking-tight text-[#2B3E51]">{{ $bestStreak }}</div>
                             <div class="text-2xl">🔥</div>
                         </div>
-                        <p class="mt-3 text-sm text-[#2B3E51]/70">{{ __('Perfect days in a row.') }}</p>
+                        <p class="mt-3 text-sm text-[#2B3E51]/70">{{ __('Your longest run of complete days in the last 365 days.') }}</p>
                     </div>
                 </div>
 
@@ -60,7 +60,7 @@
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <h3 class="text-lg font-semibold text-[#2B3E51]">{{ __('Last 7 days') }}</h3>
-                            <p class="mt-1 text-sm text-[#2B3E51]/70">{{ __('A quick glance — no complicated analytics.') }}</p>
+                            <p class="mt-1 text-sm text-[#2B3E51]/70">{{ __('Your daily completion rate. Each approved photo is a step forward.') }}</p>
                         </div>
                     </div>
 
@@ -68,9 +68,10 @@
                         @foreach ($chartDays as $day)
                             <div class="flex flex-col items-center gap-2">
                                 <div class="relative h-28 w-full overflow-hidden rounded-2xl bg-[#2B3E51]/10">
-                                    @php($height = max(6, $day['percent']))
+                                    @php($height = $day['percent'])
                                     <div class="absolute bottom-0 left-0 right-0 rounded-2xl bg-gradient-to-t from-[#377991] to-[#5DA068]" style="height: {{ $height }}%;"></div>
                                 </div>
+                                <div class="text-xs font-semibold text-[#2B3E51]/80">{{ $day['percent'] }}%</div>
                                 <div class="text-xs font-medium text-[#2B3E51]/80">{{ $day['label'] }}</div>
                                 <div class="text-[10px] text-[#2B3E51]/60">{{ $day['done'] }}/{{ $day['total'] }}</div>
                             </div>
