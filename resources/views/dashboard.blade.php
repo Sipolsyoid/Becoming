@@ -7,7 +7,7 @@
 <div>
 <p class="eyebrow">YOUR DAILY RHYTHM</p>
 <h2>{{ $totalCount > 0 && $completedCount === $totalCount ? 'You showed up for yourself.' : 'Small steps, every day.' }}</h2>
-<p>{{ $totalCount > 0 && $completedCount === $totalCount ? 'All your daily habits are complete. Take a moment to enjoy it.' : 'Choose one habit. Give it your attention. Build from there.' }}</p>
+<p>{{ $totalCount > 0 && $completedCount === $totalCount ? 'All habits scheduled for today are complete. Take a moment to enjoy it.' : 'Choose one habit. Give it your attention. Build from there.' }}</p>
 <a href="{{ route('habits.index') }}" class="banner-link">Manage your habits ↗</a>
 </div>
 <div class="daily-score">
@@ -22,7 +22,7 @@
 <div class="dashboard-grid">
 <section>
 <div class="section-heading">
-<h2>Your habits</h2>
+<h2>Scheduled today</h2>
 <span>{{ $totalCount - $completedCount }} remaining</span>
 </div>
 <div class="space-y-4">
@@ -38,8 +38,8 @@
 @empty
 <div class="empty-panel">
 <span aria-hidden="true" class="empty-symbol">＋</span>
-<h3>Your next chapter starts small.</h3>
-<p>Add one daily habit you want to make time for.</p>
+<h3>Nothing scheduled for today.</h3>
+<p>Enjoy a rest day, work on a weekly goal below, or add another habit.</p>
 <a class="action-button" href="{{ route('habits.index') }}">Add your first habit</a>
 </div>
 @endforelse
@@ -51,16 +51,17 @@
 <div class="streak-number">{{ $streak }} <span>days</span>
 </div>
 <h3>Your current streak</h3>
-<p>Days in a row with every daily habit approved. Today counts once it’s complete.</p>
+<p>Scheduled days with every due habit approved. Rest days keep your streak; weekly goals count separately.</p>
 <a href="{{ route('progress') }}">Explore your progress →</a>
 </div>
 <div class="insight-card">
 <p class="eyebrow">A LITTLE EXTRA ATTENTION</p>
 <h3>{{ $focusHabit?->name ?? 'Find your rhythm' }}</h3>
-<p>{{ $focusHabit ? 'Completed '.$focusHabitCount.' of the last 7 days. Make a little space for it today.' : 'Your least-completed daily habit will appear here once you add a habit.' }}</p>
+<p>{{ $focusHabit ? 'Completed '.$focusHabitCount.' of '.$focusHabitTarget.' scheduled days this week. Make a little space for it today.' : 'Your least-completed habit scheduled today will appear here once you add a habit.' }}</p>
 </div>
 <p class="quiet-note">Your photos are private. Only approved checks count toward your progress.</p>
 </aside>
 </div>
 </div>
+<div class="page-content pt-0"><x-weekly-goals :goals="$weeklyGoals" :completed-today="$weeklyCompletedToday" :upload="true" /></div>
 </x-app-layout>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\HabitSchedule;
 use App\Models\Habit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +28,8 @@ class HabitController extends Controller
     {
         $user = $request->user();
 
+        $schedule = $request->has('schedule_type') ? HabitSchedule::validate($request) : [];
+
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -39,6 +42,7 @@ class HabitController extends Controller
         ]);
 
         $user->habits()->create([
+            ...$schedule,
             'name' => $validated['name'],
             'category' => $validated['category'] ?? null,
             'is_daily' => $request->boolean('is_daily'),
@@ -51,6 +55,12 @@ class HabitController extends Controller
     {
         abort_unless($habit->user_id === $request->user()->id, 404);
 
+        if ($request->has('schedule_type')) {
+            $habit->update(HabitSchedule::validate($request));
+
+            return back()->with('status', 'Schedule updated.');
+        }
+
         $validated = $request->validate([
             'is_daily' => ['required', 'boolean'],
         ]);
@@ -59,7 +69,7 @@ class HabitController extends Controller
             'is_daily' => (bool) $validated['is_daily'],
         ]);
 
-        return back()->with('status', $habit->is_daily ? 'Habit added to your daily list.' : 'Habit removed from your daily list. It is still in your collection.');
+        return back()->with('status', $habit->is_daily ? 'Habit resumed on its schedule.' : 'Habit paused. Your records are kept.');
     }
 
     public function destroy(Request $request, Habit $habit): RedirectResponse
@@ -71,4 +81,3 @@ class HabitController extends Controller
         return back()->with('status', 'Habit and completion history deleted.');
     }
 }
-

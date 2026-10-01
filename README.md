@@ -30,7 +30,17 @@ Verification is synchronous, with a 180-second HTTP timeout. Only `approved` res
 - `npm run build`: compile production assets.
 - `composer check-platform-reqs`: check installed PHP requirements.
 
-Dates use UTC. Historical percentages use the current daily-habit set, and the current streak is zero until today is complete, as specified in the Becoming documentation. Deleting a habit removes its database completions but retains photo files, also as documented.
+Dates use UTC. Historical percentages use the current active schedules. Deleting a habit removes its database completions but retains photo files.
+
+## Custom schedules
+
+Habits support every day, selected weekdays, or a flexible target of 1–7 times per week. Choose a schedule when adding a habit, or expand **Change schedule** on an existing habit. **Pause** keeps the schedule and completion records; **Resume** restores it. Existing active habits remain daily after migration, and previously inactive habits remain paused.
+
+The dashboard shows daily/weekday habits only when due. Percentages and the seven-day graph use each date's scheduled occurrences, excluding off-day approvals. Rest days neither add to nor break a scheduled-day streak; an incomplete due day breaks it. Focus suggestions compare the fraction of scheduled days completed, with creation order breaking ties.
+
+Weekly goals appear separately on the dashboard and Progress, reset Monday at 00:00 UTC, and count at most one approved completion per date. They do not affect daily percentages or streaks. Uploads are unavailable after the weekly target is reached, unless replacing today's existing approved record. Rejected or failed attempts do not count. Paused and off-day habits cannot accept uploads.
+
+Schedule changes apply to past calculations too; schedule history snapshots are not implemented. This feature extends the original FP-04/05/07–14 specification, including rest-day and weekly-goal behavior. Run `php artisan migrate` when deploying the change; the local database has already been migrated.
 
 ## Interface update
 

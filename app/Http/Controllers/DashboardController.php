@@ -14,7 +14,8 @@ class DashboardController extends Controller
         $user = $request->user();
         $today = Carbon::today();
 
-        $dailyHabits = $metrics->dailyHabits($user);
+        $activeHabits = $metrics->dailyHabits($user);
+        $dailyHabits = $activeHabits->filter(fn ($habit) => $habit->isDueOn($today));
         $habitIds = $dailyHabits->pluck('id')->map(fn ($id) => (int) $id)->all();
 
         $completedHabitIds = $metrics->completedHabitIdsForDate($user, $habitIds, $today);
@@ -24,32 +25,28 @@ class DashboardController extends Controller
         $progressPercent = $totalCount > 0 ? (int) round(($completedCount / $totalCount) * 100) : 0;
 
         $rangeStart = $today->copy()->subDays(364);
-        $countsByDate = $metrics->completionCountsByDate($user, $habitIds, $rangeStart, $today);
-        $streak = $metrics->perfectStreak($countsByDate, $totalCount, $rangeStart, $today);
+        $days = $metrics->scheduledDays($user, $activeHabits, $rangeStart, $today);
+        $streak = $metrics->scheduledStreaks($days)['current'];
 
         $weekStart = $today->copy()->subDays(6);
-        $countsByHabitWeek = $metrics->completionCountsByHabit($user, $habitIds, $weekStart, $today);
-
         $focusHabit = null;
         $focusHabitCount = null;
-
-        if ($totalCount > 0 && $countsByHabitWeek !== []) {
-            $lowest = PHP_INT_MAX;
-            $focusHabitId = null;
-
-            foreach ($countsByHabitWeek as $habitId => $count) {
-                if ($count < $lowest) {
-                    $lowest = $count;
-                    $focusHabitId = $habitId;
-                }
+        $focusHabitTarget = null;
+        $lowestRate = INF;
+        foreach ($metrics->schedulePerformance($user, $dailyHabits, $weekStart, $today) as $result) {
+            $rate = $result['done'] / $result['target'];
+            if ($rate < $lowestRate) {
+                $lowestRate = $rate;
+                $focusHabit = $result['habit'];
+                $focusHabitCount = $result['done'];
+                $focusHabitTarget = $result['target'];
             }
-
-            $focusHabit = $dailyHabits->firstWhere('id', $focusHabitId);
-            $focusHabitCount = $lowest;
         }
 
         return view('dashboard', [
             'today' => $today,
+            'weeklyGoals' => $metrics->weeklyGoals($user, $today),
+            'weeklyCompletedToday' => $metrics->completedHabitIdsForDate($user, $activeHabits->where('schedule_type', 'weekly')->pluck('id')->all(), $today),
             'dailyHabits' => $dailyHabits,
             'completedHabitIds' => $completedHabitIds,
             'completedCount' => $completedCount,
@@ -58,7 +55,7 @@ class DashboardController extends Controller
             'streak' => $streak,
             'focusHabit' => $focusHabit,
             'focusHabitCount' => $focusHabitCount,
+            'focusHabitTarget' => $focusHabitTarget,
         ]);
     }
 }
-

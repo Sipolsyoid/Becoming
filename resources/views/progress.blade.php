@@ -15,7 +15,7 @@
                             <div class="text-4xl font-semibold tracking-tight text-[#2B3E51]">{{ $weeklyPercent }}%</div>
                             <div class="text-sm text-[#2B3E51]/60">{{ __('last 7 days') }}</div>
                         </div>
-                        <p class="mt-3 text-sm text-[#2B3E51]/70">{{ __('Approved completions across your current daily habits.') }}</p>
+                        <p class="mt-3 text-sm text-[#2B3E51]/70">{{ __('Approved completions divided by scheduled occurrences over the last 7 days.') }}</p>
                     </div>
                 </div>
 
@@ -26,7 +26,7 @@
                             <div class="text-4xl font-semibold tracking-tight text-[#2B3E51]">{{ $bestStreak }}</div>
                             <div class="text-2xl">🔥</div>
                         </div>
-                        <p class="mt-3 text-sm text-[#2B3E51]/70">{{ __('Your longest run of complete days in the last 365 days.') }}</p>
+                        <p class="mt-3 text-sm text-[#2B3E51]/70">{{ __('Complete scheduled days in the last 365 days. Rest days do not break the streak.') }}</p>
                     </div>
                 </div>
 
@@ -39,7 +39,7 @@
                                 {{ $weakHabit->name }}
                             </p>
                             <p class="mt-1 text-sm text-[#2B3E51]/70">
-                                {{ __('Completed :count/7 this week.', ['count' => $weakHabitCount]) }}
+                                {{ __('Completed :count/:target scheduled days in the last 7 days.', ['count' => $weakHabitCount, 'target' => $weakHabitTarget]) }}
                             </p>
                         @else
                             <p class="mt-2 text-sm text-[#2B3E51]/70">
@@ -71,7 +71,7 @@
                                     @php($height = $day['percent'])
                                     <div class="absolute bottom-0 left-0 right-0 rounded-2xl bg-gradient-to-t from-[#377991] to-[#5DA068]" style="height: {{ $height }}%;"></div>
                                 </div>
-                                <div class="text-xs font-semibold text-[#2B3E51]/80">{{ $day['percent'] }}%</div>
+                                <div class="text-xs font-semibold text-[#2B3E51]/80">{{ $day['total'] ? $day['percent'].'%' : 'Rest' }}</div>
                                 <div class="text-xs font-medium text-[#2B3E51]/80">{{ $day['label'] }}</div>
                                 <div class="text-[10px] text-[#2B3E51]/60">{{ $day['done'] }}/{{ $day['total'] }}</div>
                             </div>
@@ -81,4 +81,5 @@
             </div>
         </div>
     </div>
+<div class="page-content pt-0"><x-weekly-goals :goals="$weeklyGoals" /></div>
 </x-app-layout>

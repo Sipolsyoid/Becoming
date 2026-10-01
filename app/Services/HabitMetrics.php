@@ -9,6 +9,78 @@ use Illuminate\Support\Collection;
 
 class HabitMetrics
 {
+    public function schedulePerformance(User $user, Collection $habits, Carbon $start, Carbon $end): array
+    {
+        $counts = [];
+        foreach ($habits as $habit) {
+            if ($habit->schedule_type === 'weekly') {
+                continue;
+            }
+            $target = 0;
+            for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+                if ($habit->isDueOn($date)) {
+                    $target++;
+                }
+            }
+            if ($target) {
+                $counts[$habit->id] = ['habit' => $habit, 'done' => 0, 'target' => $target];
+            }
+        }
+        $rows = $user->habitCompletions()->where('ai_status', 'approved')->whereIn('habit_id', array_keys($counts))
+            ->whereBetween('completed_on', [$start->toDateString(), $end->toDateString()])->toBase()->get(['habit_id', 'completed_on']);
+        foreach ($rows as $row) {
+            if ($counts[$row->habit_id]['habit']->isDueOn(Carbon::parse($row->completed_on))) {
+                $counts[$row->habit_id]['done']++;
+            }
+        }
+
+        return $counts;
+    }
+
+    public function scheduledDays(User $user, Collection $habits, Carbon $start, Carbon $end): array
+    {
+        $rows = $user->habitCompletions()->where('ai_status', 'approved')
+            ->whereIn('habit_id', $habits->pluck('id'))
+            ->whereBetween('completed_on', [$start->toDateString(), $end->toDateString()])
+            ->toBase()->get(['habit_id', 'completed_on']);
+        $completed = [];
+        foreach ($rows as $row) {
+            $completed[$row->completed_on][$row->habit_id] = true;
+        }
+        $days = [];
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            $due = $habits->filter(fn ($habit) => $habit->isDueOn($date));
+            $done = $due->filter(fn ($habit) => isset($completed[$date->toDateString()][$habit->id]))->count();
+            $total = $due->count();
+            $days[$date->toDateString()] = ['date' => $date->copy(), 'label' => $date->format('D'), 'done' => $done,
+                'total' => $total, 'percent' => $total ? (int) round($done / $total * 100) : 0, 'perfect' => $total > 0 && $done === $total];
+        }
+
+        return $days;
+    }
+
+    public function scheduledStreaks(array $days): array
+    {
+        $current = $best = 0;
+        foreach ($days as $day) {
+            if ($day['total'] === 0) {
+                continue;
+            } // Rest days neither add to nor break a streak.
+            $current = $day['perfect'] ? $current + 1 : 0;
+            $best = max($best, $current);
+        }
+
+        return ['current' => $current, 'best' => $best];
+    }
+
+    public function weeklyGoals(User $user, Carbon $today): Collection
+    {
+        $habits = $this->dailyHabits($user)->where('schedule_type', 'weekly');
+        $counts = $this->completionCountsByHabit($user, $habits->pluck('id')->all(), $today->copy()->startOfWeek(Carbon::MONDAY), $today);
+
+        return $habits->map(fn ($habit) => ['habit' => $habit, 'done' => $counts[$habit->id] ?? 0, 'target' => $habit->weekly_target]);
+    }
+
     /**
      * @return Collection<int, Habit>
      */

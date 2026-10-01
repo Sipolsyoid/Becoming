@@ -34,7 +34,7 @@
                                         <div class="text-xs text-[#2B3E51]/60">{{ $day['done'] }}/{{ $day['total'] }} {{ __('habits') }}</div>
                                     </div>
                                 </div>
-                                <div class="text-sm font-medium text-[#2B3E51]/70">{{ $percent }}%<span class="block text-xs font-normal">{{ $day['total'] === 0 ? 'No daily habits' : ($day['perfect'] ? 'Complete' : ($day['date']->isToday() ? 'In progress' : 'Incomplete')) }}</span></div>
+                                <div class="text-sm font-medium text-[#2B3E51]/70">{{ $percent }}%<span class="block text-xs font-normal">{{ $day['total'] === 0 ? 'Rest day' : ($day['perfect'] ? 'Complete' : ($day['date']->isToday() ? 'In progress' : 'Incomplete')) }}</span></div>
                             </div>
                         @endforeach
                     </div>
@@ -42,5 +42,5 @@
             </div>
         </div>
     </div>
-<p class="quiet-note max-w-7xl mx-auto px-6 pb-6">History uses your current daily habits. Changing your daily list also changes past percentages. Dates use UTC.</p>
+<p class="quiet-note max-w-7xl mx-auto px-6 pb-6">History uses your current schedules. Rest days are excluded from streaks; weekly goals are tracked separately in Progress. Changing a schedule updates past percentages. Dates use UTC.</p>
 </x-app-layout>

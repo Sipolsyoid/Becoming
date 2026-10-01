@@ -5,6 +5,9 @@
         </h1>
     </x-slot>
 
+    @if ($errors->any())
+        <div class="error-message mx-4" role="alert"><p class="font-semibold">Please check your habit details.</p><ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+    @endif
     <div class="py-10">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             <div class="relative overflow-hidden rounded-2xl border border-[#2B3E51]/10 bg-white/70 shadow-xl backdrop-blur motion-safe:animate-[becoming-rise-in_700ms_ease-out_both]">
@@ -15,7 +18,7 @@
 
                 <div class="relative p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-[#2B3E51]">{{ __('Add a habit') }}</h3>
-                    <p class="mt-1 text-sm text-[#2B3E51]/70">{{ __('Choose something small enough to repeat. Daily habits appear on your dashboard.') }}</p>
+                    <p class="mt-1 text-sm text-[#2B3E51]/70">{{ __('Choose something small enough to repeat. Choose daily habits, specific weekdays, or a flexible weekly target.') }}</p>
 
                     <form method="POST" action="{{ route('habits.store') }}" class="mt-6 grid gap-4 sm:grid-cols-6 items-end">
                         @csrf
@@ -35,9 +38,10 @@
                         <div class="sm:col-span-1 flex items-center gap-2 pb-1">
                             <input type="hidden" name="is_daily" value="0">
                             <input id="is_daily" name="is_daily" type="checkbox" value="1" @checked(old('is_daily', true)) class="rounded border-[#2B3E51]/20 text-[#377991] shadow-sm focus:ring-[#377991]/30">
-                            <label for="is_daily" class="text-sm text-[#2B3E51]/75">{{ __('Daily') }}</label>
+                            <label for="is_daily" class="text-sm text-[#2B3E51]/75">{{ __('Active') }}</label>
                         </div>
 
+                        <div class="sm:col-span-6"><x-habit-schedule /></div>
                         <div class="sm:col-span-6">
                             <button type="submit" class="inline-flex items-center rounded-xl bg-gradient-to-r from-[#377991] to-[#5DA068] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-[#2B3E51] hover:to-[#377991] focus:outline-none focus:ring-2 focus:ring-[#377991]/40 focus:ring-offset-2 focus:ring-offset-[#FAF8F5]">
                                 {{ __('Add habit') }}
@@ -52,7 +56,7 @@
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <h3 class="text-lg font-semibold text-[#2B3E51]">{{ __('Your habits') }}</h3>
-                            <p class="mt-1 text-sm text-[#2B3E51]/70">{{ __('Keep your daily list intentional. Removing a habit from daily keeps it in your collection.') }}</p>
+                            <p class="mt-1 text-sm text-[#2B3E51]/70">{{ __('Pause a habit to keep its records. Change its schedule below; schedule changes also update past statistics.') }}</p>
                         </div>
                     </div>
 
@@ -68,25 +72,26 @@
                                             </span>
                                         @endif
 
-                                        @if ($habit->is_daily)
-                                            <span class="inline-flex items-center rounded-full bg-[#5DA068]/20 px-2 py-0.5 text-xs font-medium text-[#2B3E51]/80">
-                                                {{ __('Daily') }}
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center rounded-full bg-[#2B3E51]/10 px-2 py-0.5 text-xs font-medium text-[#2B3E51]/70">
-                                                {{ __('Not daily') }}
-                                            </span>
-                                        @endif
+                                        <span class="status-pill">{{ $habit->scheduleLabel() }}</span>
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-3">
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <details class="w-full">
+                                        <summary class="cursor-pointer text-sm font-semibold py-2">Change schedule</summary>
+                                        <form method="POST" action="{{ route('habits.update', $habit) }}" class="mt-3">
+                                            @csrf
+                                            @method('PATCH')
+                                            <x-habit-schedule :habit="$habit" />
+                                            <button class="action-button mt-3" type="submit">Save schedule</button>
+                                        </form>
+                                    </details>
                                     <form method="POST" action="{{ route('habits.update', $habit) }}">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="is_daily" value="{{ $habit->is_daily ? 0 : 1 }}">
                                         <button type="submit" class="inline-flex items-center rounded-xl border border-[#2B3E51]/20 bg-white/60 px-3 py-1.5 text-sm font-medium text-[#2B3E51]/80 shadow-sm hover:bg-white/80 hover:text-[#2B3E51] focus:outline-none focus:ring-2 focus:ring-[#377991]/40 focus:ring-offset-2 focus:ring-offset-[#FAF8F5]">
-                                            {{ $habit->is_daily ? __('Remove from daily') : __('Make daily') }}
+                                            {{ $habit->is_daily ? __('Pause') : __('Resume') }}
                                         </button>
                                     </form>
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Habit;
 use App\Services\HabitPhotoVerifier;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,6 +17,10 @@ class HabitCompletionController extends Controller
         HabitPhotoVerifier $verifier,
     ): RedirectResponse {
         abort_unless($habit->user_id === $request->user()->id, 404);
+
+        if (! $habit->is_daily || ($habit->schedule_type !== 'weekly' && ! $habit->isDueOn(today()))) {
+            return back()->withErrors(['photo' => 'This habit is not scheduled for today.']);
+        }
 
         $validated = $request->validate([
             'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
@@ -31,6 +36,13 @@ class HabitCompletionController extends Controller
             ->first();
 
         $previousPhotoPath = $existing?->photo_path;
+        if ($habit->schedule_type === 'weekly' && $existing?->ai_status !== 'approved') {
+            $weekCount = $user->habitCompletions()->where('habit_id', $habit->id)->where('ai_status', 'approved')
+                ->whereBetween('completed_on', [today()->startOfWeek(Carbon::MONDAY)->toDateString(), $completedOn])->count();
+            if ($weekCount >= $habit->weekly_target) {
+                return back()->withErrors(['photo' => 'You have already reached this week’s goal.']);
+            }
+        }
         $photo = $validated['photo'];
         try {
             $path = $photo->store("habit-proofs/{$user->id}", 'local');

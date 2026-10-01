@@ -15,30 +15,10 @@ class HistoryController extends Controller
         $today = Carbon::today();
 
         $dailyHabits = $metrics->dailyHabits($user);
-        $habitIds = $dailyHabits->pluck('id')->map(fn ($id) => (int) $id)->all();
-        $totalCount = $dailyHabits->count();
-
-        $start = $today->copy()->subDays(29);
-        $countsByDate = $metrics->completionCountsByDate($user, $habitIds, $start, $today);
-
-        $days = [];
-
-        for ($i = 0; $i < 30; $i++) {
-            $date = $today->copy()->subDays($i);
-            $key = $date->toDateString();
-            $done = $countsByDate[$key] ?? 0;
-
-            $days[] = [
-                'date' => $date,
-                'done' => $done,
-                'total' => $totalCount,
-                'perfect' => $totalCount > 0 && $done >= $totalCount,
-            ];
-        }
+        $days = array_reverse(array_values($metrics->scheduledDays($user, $dailyHabits, $today->copy()->subDays(29), $today)));
 
         return view('history', [
             'days' => $days,
         ]);
     }
 }
-
