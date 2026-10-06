@@ -33,7 +33,7 @@
 <div class="habit-title">
 <span class="habit-marker" aria-hidden="true" x-text="stats.ids.includes({{ $habit->id }}) ? '✓' : '{{ sprintf('%02d', $loop->iteration) }}'">{{ $isDone ? '✓' : sprintf('%02d', $loop->iteration) }}</span>
 <div class="min-w-0">
-<h3>{{ $habit->name }}</h3>
+<h3><a href="{{ route('habits.show', $habit) }}" class="underline underline-offset-4">{{ $habit->name }}</a></h3>
 <p>{{ $habit->category ?: 'Your daily practice' }}</p>
 </div><span x-cloak x-show="stats.ids.includes({{ $habit->id }})" class="status-pill">Done ✓</span></div>@unless ($isDone)<x-photo-proof :habit="$habit" :check="$photoChecks->get($habit->id)" />@endunless</article>
 @empty

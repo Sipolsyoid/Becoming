@@ -40,6 +40,14 @@ Open **Habits** to edit names and categories, search by name, or filter by statu
 
 Use **Up** and **Down** in the unfiltered current list to save your preferred order. The dashboard uses this order too; new habits go at the end. Reordering is available without JavaScript and does not change schedules or progress. Run `php artisan migrate` to add the archive and ordering fields.
 
+## Photo history
+
+Select a habit name in Habits or on a daily dashboard card to open its detail page. Check-ins are listed newest first, 12 per page, including archived habits. Each photo shows its saved AI decision and feedback. A replacement awaiting verification is displayed separately from the saved result. Use **Refresh results** to update pending checks.
+
+Click a photo to enlarge it in a new browser tab; this also works without JavaScript. Photos stay on private storage and are served through authenticated routes that verify both habit and check-in ownership. Responses disable caching and reject missing files, paths outside the owner's photo folder, and unsupported image content.
+
+History contains one record per habit per date, not every upload attempt. Replacing a photo replaces that date's result after verification; superseded images are not retained. No migration is required for this feature.
+
 ## Custom schedules
 
 Habits support every day, selected weekdays, or a flexible target of 1–7 times per week. Choose a schedule when adding a habit, or expand **Change schedule** on an existing habit. **Pause** keeps the schedule and completion records; **Resume** restores it. Existing active habits remain daily after migration, and previously inactive habits remain paused.

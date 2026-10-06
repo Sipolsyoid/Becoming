@@ -72,7 +72,7 @@
                             <div class="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <div class="font-medium text-[#2B3E51]">{{ $habit->name }}</div>
+                                        <a href="{{ route('habits.show', $habit) }}" class="font-medium text-[#2B3E51] underline underline-offset-4">{{ $habit->name }}</a>
                                         @if ($habit->category)
                                             <span class="inline-flex items-center rounded-full bg-[#76C7B7]/20 px-2 py-0.5 text-xs font-medium text-[#2B3E51]/80">
                                                 {{ $habit->category }}

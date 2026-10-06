@@ -12,6 +12,17 @@ use Illuminate\View\View;
 
 class HabitController extends Controller
 {
+    public function show(Request $request, Habit $habit): View
+    {
+        abort_unless($habit->user_id === $request->user()->id, 404);
+
+        return view('habits.show', [
+            'habit' => $habit,
+            'checkIns' => $habit->completions()->where('user_id', $request->user()->id)
+                ->orderByDesc('completed_on')->orderByDesc('id')->paginate(12),
+        ]);
+    }
+
     public function index(Request $request): View
     {
         $filters = $request->validate([

@@ -11,12 +11,37 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
 class HabitCompletionController extends Controller
 {
+    public function photo(Request $request, HabitCompletion $completion, string $version): BinaryFileResponse
+    {
+        abort_unless($completion->user_id === $request->user()->id
+            && $completion->habit?->user_id === $request->user()->id, 404);
+        $path = $version === 'pending' ? $completion->pending_photo_path : $completion->photo_path;
+        $prefix = 'habit-proofs/'.$request->user()->id.'/';
+        abort_unless(is_string($path) && str_starts_with($path, $prefix)
+            && ! str_contains($path, '..') && ! str_contains($path, '\\'), 404);
+        $disk = Storage::disk('local');
+        $root = realpath($disk->path($prefix));
+        $file = realpath($disk->path($path));
+        abort_unless($root && $file && str_starts_with($file, $root.DIRECTORY_SEPARATOR) && is_file($file), 404);
+        $mime = @getimagesize($file)['mime'] ?? null;
+        abort_unless(in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true), 404);
+
+        return response()->file($file, [
+            'Content-Type' => $mime,
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; img-src 'self'; sandbox",
+        ])->setPrivate();
+    }
+
     public function submitPhoto(Request $request, Habit $habit): JsonResponse|RedirectResponse
     {
         abort_unless($habit->user_id === $request->user()->id, 404);
