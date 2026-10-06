@@ -4,8 +4,8 @@ export default (initial = null) => ({
     get pending() { return ['queued', 'checking'].includes(this.check?.status); },
     get done() { return this.check?.status === 'approved'; },
     get title() {
-        return ({ queued: 'Photo saved. You can keep going.', checking: 'Checking your photoâ€¦', approved: 'A small win, recorded.',
-            needs_review: 'A clearer photo would help.', rejected: 'Letâ€™s try a different photo.', failed: 'Your photo is safe. The check needs a retry.', cancelled: 'Queued check cancelled.' })[this.check?.status] || '';
+        return ({ queued: 'Photo saved. You can keep going.', checking: 'Checking your photo…', approved: 'A small win, recorded.',
+            needs_review: 'A clearer photo would help.', rejected: 'Let’s try a different photo.', failed: 'Your photo is safe. The check needs a retry.', cancelled: 'Queued check cancelled.' })[this.check?.status] || '';
     },
     init() { if (this.pending) this.schedule(); },
     select(event) {
@@ -58,7 +58,7 @@ export default (initial = null) => ({
             this.check = data;
             this.schedule();
         } catch {
-            this.error = 'Connection lost. Your photo may have saved â€” refresh the page to check before uploading again.';
+            this.error = 'Connection lost. Your photo may have saved — refresh the page to check before uploading again.';
         } finally { this.busy = false; }
     },
     schedule() {
@@ -85,7 +85,7 @@ export default (initial = null) => ({
         } catch {
             if (!this.stopped) {
                 this.failures++;
-                this.connectionNote = 'Reconnectingâ€¦ Your saved photo will keep its place. Weâ€™ll check for an update automatically.';
+                this.connectionNote = 'Reconnecting… Your saved photo will keep its place. We’ll check for an update automatically.';
             }
         } finally {
             clearTimeout(timeout); this.polling = false; this.controller = null; this.schedule();

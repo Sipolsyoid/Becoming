@@ -97,7 +97,7 @@ class HabitCompletionController extends Controller
                 if ($lockedHabit->schedule_type === 'weekly' && $existing?->ai_status !== 'approved') {
                     $count = app(HabitMetrics::class)->weeklyGoals($user, $today)->firstWhere('habit.id', $habit->id)['done'] ?? 0;
                     if ($count >= $lockedHabit->weekly_target) {
-                        throw ValidationException::withMessages(['photo' => 'You have already reached this weekâ€™s goal.']);
+                        throw ValidationException::withMessages(['photo' => 'You have already reached this week’s goal.']);
                     }
                 }
                 $oldPending = $existing?->pending_photo_path;
@@ -125,7 +125,7 @@ class HabitCompletionController extends Controller
 
         return $request->expectsJson()
             ? response()->json($completion->fresh()->checkState(), 202)
-            : back()->with('status', 'Photo saved. Weâ€™ll check it in the background â€” you can keep going.');
+            : back()->with('status', 'Photo saved. We’ll check it in the background — you can keep going.');
     }
 
     public function show(Request $request, HabitCompletion $completion): JsonResponse
