@@ -40,6 +40,16 @@ Open **Habits** to edit names and categories, search by name, or filter by statu
 
 Use **Up** and **Down** in the unfiltered current list to save your preferred order. The dashboard uses this order too; new habits go at the end. Reordering is available without JavaScript and does not change schedules or progress. Run `php artisan migrate` to add the archive and ordering fields.
 
+## Reliable background checks
+
+The photo worker records a heartbeat while listening on the `photos` connection and queue. A photo queued for over two minutes shows a warning if no worker heartbeat has been seen for five minutes. This indicates worker availability, not Ollama health; queued photos remain saved. Restart workers after deploying so the heartbeat listener is loaded.
+
+`photos:recover` runs every minute through the Laravel scheduler. A check stuck in **checking** for over ten minutes is queued again once with a new verification token. Late results from the old job cannot overwrite it. A second interruption becomes **failed** and offers a manual retry. Queued checks are left waiting, avoiding repeated jobs when a worker is stopped. Keep `php artisan schedule:work` running locally or configure the production scheduler.
+
+Use **Cancel queued check** before checking begins. Cancellation removes the pending photo and invalidates its job while preserving any previous saved photo and approval. A check that has started cannot be cancelled. The dashboard lists up to eight completed results checked in the last seven days, including check-ins for earlier dates.
+
+`php artisan photos:cleanup` previews how many unreferenced private habit photos are older than 24 hours. Add `--delete` to remove them. The scheduler runs deletion daily. Both saved and pending photo references are protected, and files outside `habit-proofs` are untouched. Run `php artisan migrate` for recovery timestamps and counters, then restart the photo worker.
+
 ## Photo history
 
 Select a habit name in Habits or on a daily dashboard card to open its detail page. Check-ins are listed newest first, 12 per page, including archived habits. Each photo shows its saved AI decision and feedback. A replacement awaiting verification is displayed separately from the saved result. Use **Refresh results** to update pending checks.

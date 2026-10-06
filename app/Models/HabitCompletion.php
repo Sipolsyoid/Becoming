@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 #[Fillable([
     'habit_id',
@@ -23,6 +24,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'pending_photo_path',
     'verification_reason',
     'verification_requested_at',
+    'verification_started_at',
+    'verification_recoveries',
 ])]
 class HabitCompletion extends Model
 {
@@ -48,6 +51,8 @@ class HabitCompletion extends Model
             'ai_result' => 'array',
             'analyzed_at' => 'datetime',
             'verification_requested_at' => 'datetime',
+            'verification_started_at' => 'datetime',
+            'verification_recoveries' => 'integer',
         ];
     }
 
@@ -61,6 +66,11 @@ class HabitCompletion extends Model
             'can_retry' => $this->pending_photo_path && ($this->verification_status === 'failed' || $this->verification_requested_at?->lt(now()->subMinutes(10))),
             'status_url' => route('checks.show', $this),
             'retry_url' => route('checks.retry', $this),
+            'can_cancel' => $this->verification_status === 'queued',
+            'cancel_url' => route('checks.cancel', $this),
+            'worker_note' => $this->verification_status === 'queued' && $this->verification_requested_at?->lt(now()->subMinutes(2))
+                && ! Cache::has('photos.worker_seen_at')
+                ? 'The photo worker has not been seen recently. Your photo is saved and will wait until checking resumes.' : null,
         ];
     }
 

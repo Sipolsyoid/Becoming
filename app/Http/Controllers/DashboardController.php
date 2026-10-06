@@ -60,6 +60,8 @@ class DashboardController extends Controller
             'photoChecks' => $user->habitCompletions()->where('completed_on', $today->toDateString())->get()->keyBy('habit_id'),
             'earlierChecks' => $user->habitCompletions()->with('habit')->where('completed_on', '!=', $today->toDateString())
                 ->whereIn('verification_status', ['queued', 'checking', 'failed'])->latest('verification_requested_at')->limit(10)->get(),
+            'recentChecks' => $user->habitCompletions()->with('habit')->whereIn('verification_status', ['approved', 'rejected', 'needs_review'])
+                ->where('analyzed_at', '>=', now()->subDays(7))->latest('analyzed_at')->limit(8)->get(),
             'today' => $today,
             'weeklyGoals' => $weeklyGoals,
             'weeklyCompletedToday' => $metrics->completedHabitIdsForDate($user, $activeHabits->where('schedule_type', 'weekly')->pluck('id')->all(), $today),

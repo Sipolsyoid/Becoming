@@ -29,7 +29,7 @@ class VerifyHabitPhoto implements ShouldQueue
     public function handle(HabitPhotoVerifier $verifier): void
     {
         $claimed = HabitCompletion::whereKey($this->completionId)->where('verification_token', $this->token)
-            ->where('verification_status', 'queued')->update(['verification_status' => 'checking']);
+            ->where('verification_status', 'queued')->update(['verification_status' => 'checking', 'verification_started_at' => now()]);
         if (! $claimed) {
             return;
         }

@@ -19,6 +19,28 @@ use Throwable;
 
 class HabitCompletionController extends Controller
 {
+    public function cancel(Request $request, HabitCompletion $completion): JsonResponse|RedirectResponse
+    {
+        abort_unless($completion->user_id === $request->user()->id, 404);
+        $path = DB::transaction(function () use ($completion) {
+            $current = HabitCompletion::whereKey($completion->id)->lockForUpdate()->firstOrFail();
+            if ($current->verification_status !== 'queued') {
+                throw ValidationException::withMessages(['photo' => 'Only a queued check can be cancelled. This check may have started already.']);
+            }
+            $path = $current->pending_photo_path;
+            $current->update(['verification_status' => 'cancelled', 'verification_token' => (string) Str::uuid(),
+                'pending_photo_path' => null, 'verification_reason' => 'Photo check cancelled. Any previous saved result is kept.']);
+
+            return $path;
+        });
+        if ($path && $path !== $completion->photo_path) {
+            VerifyHabitPhoto::deletePhoto($path);
+        }
+
+        return $request->expectsJson() ? response()->json($completion->fresh()->checkState())
+            : back()->with('status', 'Queued photo check cancelled.');
+    }
+
     public function photo(Request $request, HabitCompletion $completion, string $version): BinaryFileResponse
     {
         abort_unless($completion->user_id === $request->user()->id
@@ -75,14 +97,14 @@ class HabitCompletionController extends Controller
                 if ($lockedHabit->schedule_type === 'weekly' && $existing?->ai_status !== 'approved') {
                     $count = app(HabitMetrics::class)->weeklyGoals($user, $today)->firstWhere('habit.id', $habit->id)['done'] ?? 0;
                     if ($count >= $lockedHabit->weekly_target) {
-                        throw ValidationException::withMessages(['photo' => 'You have already reached this week’s goal.']);
+                        throw ValidationException::withMessages(['photo' => 'You have already reached this weekâ€™s goal.']);
                     }
                 }
                 $oldPending = $existing?->pending_photo_path;
                 $completion = $user->habitCompletions()->updateOrCreate(
                     ['habit_id' => $habit->id, 'completed_on' => $today->toDateString()],
                     ['pending_photo_path' => $path, 'verification_token' => (string) Str::uuid(), 'verification_status' => 'queued',
-                        'verification_reason' => null, 'verification_requested_at' => now()],
+                        'verification_reason' => null, 'verification_started_at' => null, 'verification_recoveries' => 0, 'verification_requested_at' => now()],
                 );
                 // The database queue insert participates in this transaction on the default database.
                 app(Dispatcher::class)->dispatch(new VerifyHabitPhoto($completion->id, $completion->verification_token));
@@ -103,7 +125,7 @@ class HabitCompletionController extends Controller
 
         return $request->expectsJson()
             ? response()->json($completion->fresh()->checkState(), 202)
-            : back()->with('status', 'Photo saved. We’ll check it in the background — you can keep going.');
+            : back()->with('status', 'Photo saved. Weâ€™ll check it in the background â€” you can keep going.');
     }
 
     public function show(Request $request, HabitCompletion $completion): JsonResponse
@@ -123,7 +145,7 @@ class HabitCompletionController extends Controller
                     throw ValidationException::withMessages(['photo' => 'This check is still running or no longer needs a retry.']);
                 }
                 $current->update(['verification_status' => 'queued', 'verification_reason' => null,
-                    'verification_token' => (string) Str::uuid(), 'verification_requested_at' => now()]);
+                    'verification_token' => (string) Str::uuid(), 'verification_started_at' => null, 'verification_recoveries' => 0, 'verification_requested_at' => now()]);
                 app(Dispatcher::class)->dispatch(new VerifyHabitPhoto($current->id, $current->verification_token));
             });
         } catch (ValidationException $exception) {

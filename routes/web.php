@@ -12,6 +12,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/photo-checks/{completion}', [HabitCompletionController::class, 'show'])->name('checks.show');
     Route::get('/photo-checks/{completion}/photo/{version}', [HabitCompletionController::class, 'photo'])->whereIn('version', ['saved', 'pending'])->name('checks.photo');
     Route::post('/photo-checks/{completion}/retry', [HabitCompletionController::class, 'retry'])->name('checks.retry');
+    Route::post('/photo-checks/{completion}/cancel', [HabitCompletionController::class, 'cancel'])->name('checks.cancel');
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::patch('/settings', [SettingsController::class, 'update'])->name('settings.update');
     Route::get('/', DashboardController::class)->name('dashboard');
