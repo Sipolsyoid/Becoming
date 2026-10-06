@@ -56,7 +56,7 @@
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <h3 class="text-lg font-semibold text-[#2B3E51]">{{ __('Your habits') }}</h3>
-                            <p class="mt-1 text-sm text-[#2B3E51]/70">{{ __('Pause a habit to keep its records. Change its schedule below; schedule changes also update past statistics.') }}</p>
+                            <p class="mt-1 text-sm text-[#2B3E51]/70">{{ __('Pause a habit to keep its records. Schedule changes apply from today; earlier days keep their recorded schedule.') }}</p>
                         </div>
                     </div>
 

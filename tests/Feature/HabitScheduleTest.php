@@ -52,8 +52,8 @@ test('schedule updates check ownership and validate before changing data', funct
 
 test('selected weekdays drive dashboard and date-specific denominators', function () {
     $user = User::factory()->create();
-    $monday = Habit::factory()->create(['user_id' => $user->id, 'schedule_type' => 'weekdays', 'weekdays' => [1]]);
-    $tuesday = Habit::factory()->create(['user_id' => $user->id, 'schedule_type' => 'weekdays', 'weekdays' => [2]]);
+    $monday = Habit::factory()->create(['user_id' => $user->id, 'schedule_type' => 'weekdays', 'weekdays' => [1], 'created_at' => today()->subDays(7)]);
+    $tuesday = Habit::factory()->create(['user_id' => $user->id, 'schedule_type' => 'weekdays', 'weekdays' => [2], 'created_at' => today()->subDays(7)]);
     HabitCompletion::factory()->create(['habit_id' => $monday->id, 'completed_on' => today(), 'ai_status' => 'approved']);
     // An old approval on a day no longer scheduled must not inflate percentages.
     HabitCompletion::factory()->create(['habit_id' => $tuesday->id, 'completed_on' => today(), 'ai_status' => 'approved']);
@@ -64,14 +64,16 @@ test('selected weekdays drive dashboard and date-specific denominators', functio
 
 test('rest days preserve streaks without adding to them', function () {
     $user = User::factory()->create();
-    $habit = Habit::factory()->create(['user_id' => $user->id, 'schedule_type' => 'weekdays', 'weekdays' => [1, 5]]);
+    $habit = Habit::factory()->create(['user_id' => $user->id, 'schedule_type' => 'weekdays', 'weekdays' => [1, 5], 'created_at' => today()->subDays(7)]);
     foreach ([0, 3] as $days) {
         HabitCompletion::factory()->create(['habit_id' => $habit->id, 'completed_on' => today()->subDays($days), 'ai_status' => 'approved']);
     }
     $this->actingAs($user)->get('/')->assertViewHas('streak', 2);
     $this->travelTo(today()->addDay());
     $this->get('/')->assertViewHas('totalCount', 0)->assertViewHas('streak', 2);
-    $this->travelTo(today()->addDays(3)); // Friday is due and not complete.
+    $this->travelTo(today()->addDays(3)); // Friday is still in progress.
+    $this->get('/')->assertViewHas('streak', 2);
+    $this->travelTo(today()->addDay());
     $this->get('/')->assertViewHas('streak', 0);
 });
 
@@ -97,7 +99,7 @@ test('off-day and paused uploads are rejected before inference', function () {
 
 test('a reached weekly goal rejects a new day upload', function () {
     $this->travelTo(today()->addDay());
-    $habit = Habit::factory()->create(['schedule_type' => 'weekly', 'weekly_target' => 1]);
+    $habit = Habit::factory()->create(['schedule_type' => 'weekly', 'weekly_target' => 1, 'created_at' => today()->subDay()]);
     HabitCompletion::factory()->create(['habit_id' => $habit->id, 'completed_on' => today()->subDay(), 'ai_status' => 'approved']);
     $photo = UploadedFile::fake()->createWithContent('photo.jpg', file_get_contents(public_path('img/logo.jpeg')));
     $this->actingAs($habit->user)->post('/habits/'.$habit->id.'/complete-with-photo', ['photo' => $photo])->assertSessionHasErrors('photo');

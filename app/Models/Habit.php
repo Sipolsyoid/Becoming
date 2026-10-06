@@ -18,6 +18,35 @@ class Habit extends Model
 
     protected $attributes = ['schedule_type' => 'daily'];
 
+    protected static function booted(): void
+    {
+        static::saved(function (Habit $habit) {
+            $isCreation = $habit->wasRecentlyCreated && $habit->getChanges() === [];
+            if (! $isCreation && ! $habit->wasChanged(['is_daily', 'schedule_type', 'weekdays', 'weekly_target'])) {
+                return;
+            }
+            $date = $isCreation
+                ? $habit->created_at->copy()->setTimezone($habit->user->timezone)->toDateString()
+                : $habit->user->localToday()->toDateString();
+            // A local calendar day has one effective schedule; editing today never rewrites yesterday.
+            $habit->scheduleVersions()->updateOrCreate(['effective_on' => $date], [
+                'is_active' => $habit->is_daily, 'schedule_type' => $habit->schedule_type,
+                'weekdays' => $habit->weekdays, 'weekly_target' => $habit->weekly_target,
+            ]);
+            $habit->unsetRelation('scheduleVersions');
+        });
+    }
+
+    public function scheduleVersions(): HasMany
+    {
+        return $this->hasMany(HabitScheduleVersion::class)->orderBy('effective_on');
+    }
+
+    public function scheduleOn(CarbonInterface $date): ?HabitScheduleVersion
+    {
+        return $this->scheduleVersions->last(fn ($version) => $version->effective_on <= $date->toDateString());
+    }
+
     protected function casts(): array
     {
         return ['is_daily' => 'boolean', 'weekdays' => 'array', 'weekly_target' => 'integer'];
@@ -25,8 +54,10 @@ class Habit extends Model
 
     public function isDueOn(CarbonInterface $date): bool
     {
-        return $this->is_daily && ($this->schedule_type === 'daily'
-            || ($this->schedule_type === 'weekdays' && in_array($date->isoWeekday(), $this->weekdays ?? [], true)));
+        $schedule = $this->scheduleOn($date);
+
+        return $schedule?->is_active && ($schedule->schedule_type === 'daily'
+            || ($schedule->schedule_type === 'weekdays' && in_array($date->isoWeekday(), $schedule->weekdays ?? [], true)));
     }
 
     public function scheduleLabel(): string

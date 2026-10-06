@@ -6,6 +6,7 @@ use App\Http\Requests\HabitSchedule;
 use App\Models\Habit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -41,12 +42,12 @@ class HabitController extends Controller
             'is_daily' => ['nullable', 'boolean'],
         ]);
 
-        $user->habits()->create([
+        DB::transaction(fn () => $user->habits()->create([
             ...$schedule,
             'name' => $validated['name'],
             'category' => $validated['category'] ?? null,
             'is_daily' => $request->boolean('is_daily'),
-        ]);
+        ]));
 
         return redirect()->route('habits.index')->with('status', 'Habit added. Your next small step is ready.');
     }
@@ -56,18 +57,22 @@ class HabitController extends Controller
         abort_unless($habit->user_id === $request->user()->id, 404);
 
         if ($request->has('schedule_type')) {
-            $habit->update(HabitSchedule::validate($request));
+            $values = HabitSchedule::validate($request);
+            DB::transaction(function () use ($habit, $values) {
+                Habit::whereKey($habit->id)->lockForUpdate()->firstOrFail()->update($values);
+            });
 
-            return back()->with('status', 'Schedule updated.');
+            return back()->with('status', 'Schedule updated from today. Earlier days are unchanged.');
         }
 
         $validated = $request->validate([
             'is_daily' => ['required', 'boolean'],
         ]);
 
-        $habit->update([
-            'is_daily' => (bool) $validated['is_daily'],
-        ]);
+        DB::transaction(function () use ($habit, $validated) {
+            Habit::whereKey($habit->id)->lockForUpdate()->firstOrFail()->update(['is_daily' => (bool) $validated['is_daily']]);
+        });
+        $habit->refresh();
 
         return back()->with('status', $habit->is_daily ? 'Habit resumed on its schedule.' : 'Habit paused. Your records are kept.');
     }

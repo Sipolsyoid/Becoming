@@ -52,7 +52,7 @@
 <div class="streak-number"><span x-text="stats.streak" style="font:inherit;color:inherit">{{ $streak }}</span> <span>days</span>
 </div>
 <h3>Your current streak</h3>
-<p>Scheduled days with every due habit approved. Rest days keep your streak; weekly goals count separately.</p>
+<p>Completed scheduled days. Today can still be finished, so yesterday’s streak stays alive until your local day ends. Rest days preserve it.</p>
 <a href="{{ route('progress') }}">Explore your progress →</a>
 </div>
 <div class="insight-card">

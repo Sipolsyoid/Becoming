@@ -14,10 +14,11 @@ class HistoryController extends Controller
         $today = $user->localToday();
 
         $dailyHabits = $metrics->dailyHabits($user);
-        $days = array_reverse(array_values($metrics->scheduledDays($user, $dailyHabits, $today->copy()->subDays(29), $today)));
+        $days = array_reverse(array_values($metrics->scheduledDays($user, $metrics->historyHabits($user), $today->copy()->subDays(29), $today)));
 
         return view('history', [
             'days' => $days,
+            'weeklyHistory' => $metrics->weeklyHistory($user, $today),
         ]);
     }
 }

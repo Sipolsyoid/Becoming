@@ -42,5 +42,24 @@
             </div>
         </div>
     </div>
-<p class="quiet-note max-w-7xl mx-auto px-6 pb-6">History uses your current schedules. Rest days are excluded from streaks; weekly goals are tracked separately in Progress. Changing a schedule updates past percentages. Dates use {{ auth()->user()->timezone }}. Existing completions keep their recorded dates when you change timezone.</p>
+<section class="page-content pt-0">
+    <div class="section-heading"><h2>Weekly goal history</h2><span>Last 8 weeks · Monday–Sunday</span></div>
+    <p class="quiet-note mb-4">Each week uses its recorded weekly schedule. Partial weeks keep the full target; only approvals on active weekly-goal days count.</p>
+    <div class="space-y-4">
+    @forelse ($weeklyHistory->filter(fn ($week) => $week['goals']->isNotEmpty()) as $week)
+        <article class="habit-card">
+            <h3 class="font-semibold">{{ $week['start']->format('M j') }} – {{ $week['end']->format('M j, Y') }}{{ $week['current'] ? ' · This week' : '' }}</h3>
+            @foreach ($week['goals'] as $goal)
+                <div class="flex flex-wrap justify-between gap-3 mt-4 border-t pt-3">
+                    <div><p class="font-medium">{{ $goal['habit']->name }}</p><p class="text-xs text-slate-500">{{ $goal['done'] }} / {{ $goal['target'] }} approved{{ $goal['partial'] ? ' · Partial schedule week' : '' }}</p></div>
+                    <span class="status-pill">{{ $goal['reached'] ? 'Goal reached' : ($week['current'] ? 'In progress' : 'Not reached') }}</span>
+                </div>
+            @endforeach
+        </article>
+    @empty
+        <p class="empty-panel">Your weekly goals will appear here once you add a habit with a weekly target.</p>
+    @endforelse
+    </div>
+</section>
+<p class="quiet-note max-w-7xl mx-auto px-6 pb-6">Days before a habit was created do not count. Schedule edits and pauses apply from their local effective date, leaving earlier days unchanged. Rest days preserve streaks; an unfinished today does not break yesterday’s streak. Dates use {{ auth()->user()->timezone }}.</p>
 </x-app-layout>

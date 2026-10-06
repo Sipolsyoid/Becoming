@@ -30,17 +30,21 @@ Verification runs on the dedicated `photos` database queue, with a 180-second Ol
 - `npm run build`: compile production assets.
 - `composer check-platform-reqs`: check installed PHP requirements.
 
-Dates use each user’s saved timezone (UTC until changed in Settings). Historical percentages use the current active schedules. Deleting a habit removes its database completions but retains photo files.
+Dates use each user’s saved timezone (UTC until changed in Settings). Historical percentages use the schedule recorded for each date and exclude dates before habit creation. Deleting a habit removes its database completions but retains photo files.
 
 ## Custom schedules
 
 Habits support every day, selected weekdays, or a flexible target of 1–7 times per week. Choose a schedule when adding a habit, or expand **Change schedule** on an existing habit. **Pause** keeps the schedule and completion records; **Resume** restores it. Existing active habits remain daily after migration, and previously inactive habits remain paused.
 
-The dashboard shows daily/weekday habits only when due. Percentages and the seven-day graph use each date's scheduled occurrences, excluding off-day approvals. Rest days neither add to nor break a scheduled-day streak; an incomplete due day breaks it. Focus suggestions compare the fraction of scheduled days completed, with creation order breaking ties.
+The dashboard shows daily/weekday habits only when due. Percentages and the seven-day graph use each date's scheduled occurrences, excluding off-day approvals. Rest days neither add to nor break a scheduled-day streak. An incomplete due day breaks it only after that local day ends, so today's unfinished habits preserve yesterday's streak. Focus suggestions compare the fraction of scheduled days completed, with creation order breaking ties.
 
 Weekly goals appear separately on the dashboard and Progress, reset Monday at 00:00 in the user’s timezone, and count at most one approved completion per date. They do not affect daily percentages or streaks. Uploads are unavailable after the weekly target is reached, unless replacing today's existing approved record. Rejected or failed attempts do not count. Paused and off-day habits cannot accept uploads.
 
-Schedule changes apply to past calculations too; schedule history snapshots are not implemented. This feature extends the original FP-04/05/07–14 specification, including rest-day and weekly-goal behavior. Run `php artisan migrate` when deploying the change; the local database has already been migrated.
+Schedule edits, pauses, and resumptions take effect on the current local date. Multiple edits on the same date replace that date's snapshot; earlier dates retain their recorded schedule. Changing timezone does not rewrite existing schedule dates.
+
+History shows eight weeks of weekly goals with their recorded targets. A target edit within a week uses the latest active weekly target for that week; completed earlier weeks remain unchanged. Only approvals on dates with an active weekly schedule count toward that goal. Partial weeks are labelled and retain the full target rather than prorating it.
+
+Run `php artisan migrate` when deploying this change. For existing habits, the migration records the current schedule as a baseline from their creation date in the user's saved timezone. Older edits were not recorded and cannot be reconstructed; historical accuracy for schedule changes begins with these snapshots. This feature extends the original FP-04/05/07–14 specification, including rest-day and weekly-goal behavior.
 
 ## Interface update
 

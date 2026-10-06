@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Models\User;
 use App\Notifications\HabitReminder;
 use App\Services\HabitMetrics;
-use Carbon\CarbonInterface;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
@@ -39,7 +38,7 @@ class SendHabitReminders extends Command
                 $today = $now->copy()->startOfDay();
                 $habits = $metrics->dailyHabits($user);
                 $completed = $metrics->completedHabitIdsForDate($user, $habits->pluck('id')->all(), $today);
-                $weekCounts = $metrics->completionCountsByHabit($user, $habits->where('schedule_type', 'weekly')->pluck('id')->all(), $today->copy()->startOfWeek(CarbonInterface::MONDAY), $today);
+                $weekCounts = $metrics->weeklyGoals($user, $today)->mapWithKeys(fn ($goal) => [$goal['habit']->id => $goal['done']])->all();
                 $pending = $habits->filter(fn ($habit) => ! in_array($habit->id, $completed, true) &&
                     ($habit->isDueOn($today) || ($habit->schedule_type === 'weekly' && ($weekCounts[$habit->id] ?? 0) < $habit->weekly_target)));
 

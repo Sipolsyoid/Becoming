@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\VerifyHabitPhoto;
 use App\Models\Habit;
 use App\Models\HabitCompletion;
-use Carbon\Carbon;
+use App\Services\HabitMetrics;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -48,8 +48,7 @@ class HabitCompletionController extends Controller
                     throw ValidationException::withMessages(['photo' => 'This photo is already being checked. Your result will appear automatically.']);
                 }
                 if ($lockedHabit->schedule_type === 'weekly' && $existing?->ai_status !== 'approved') {
-                    $count = $user->habitCompletions()->where('habit_id', $habit->id)->where('ai_status', 'approved')
-                        ->whereBetween('completed_on', [$today->copy()->startOfWeek(Carbon::MONDAY)->toDateString(), $today->toDateString()])->count();
+                    $count = app(HabitMetrics::class)->weeklyGoals($user, $today)->firstWhere('habit.id', $habit->id)['done'] ?? 0;
                     if ($count >= $lockedHabit->weekly_target) {
                         throw ValidationException::withMessages(['photo' => 'You have already reached this week’s goal.']);
                     }

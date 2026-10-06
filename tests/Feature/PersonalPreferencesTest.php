@@ -98,7 +98,7 @@ test('reminder digest filters schedules completions and reached weekly goals', f
     Habit::factory()->create(['user_id' => $user->id, 'schedule_type' => 'weekdays', 'weekdays' => [1]]);
     $done = Habit::factory()->create(['user_id' => $user->id]);
     HabitCompletion::factory()->create(['habit_id' => $done->id, 'completed_on' => '2026-10-06', 'ai_status' => 'approved']);
-    $reached = Habit::factory()->create(['user_id' => $user->id, 'schedule_type' => 'weekly', 'weekly_target' => 1]);
+    $reached = Habit::factory()->create(['user_id' => $user->id, 'schedule_type' => 'weekly', 'weekly_target' => 1, 'created_at' => '2026-10-05 00:00:00']);
     HabitCompletion::factory()->create(['habit_id' => $reached->id, 'completed_on' => '2026-10-05', 'ai_status' => 'approved']);
     $weekly = Habit::factory()->create(['user_id' => $user->id, 'schedule_type' => 'weekly', 'weekly_target' => 3]);
     HabitCompletion::factory()->create(['habit_id' => $weekly->id, 'completed_on' => '2026-10-06', 'ai_status' => 'rejected']);
@@ -121,6 +121,7 @@ test('empty and rest days do not send email', function () {
 });
 
 test('daylight saving skipped and repeated times send at most once per local day', function () {
+    $this->travelTo(Carbon::parse('2026-03-28 00:00:00', 'UTC'));
     Notification::fake();
     $user = User::factory()->create(['timezone' => 'Europe/Riga', 'reminders_enabled' => true, 'reminder_time' => '03:30']);
     Habit::factory()->create(['user_id' => $user->id]);

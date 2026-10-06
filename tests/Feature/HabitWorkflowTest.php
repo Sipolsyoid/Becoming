@@ -180,7 +180,7 @@ test('reports retain documented dates, rounding, streaks and least completed ord
     }
     HabitCompletion::factory()->create(['habit_id' => $habits->last()->id, 'completed_on' => today(), 'ai_status' => 'rejected']);
     HabitCompletion::factory()->create(['completed_on' => today(), 'ai_status' => 'approved']);
-    $this->actingAs($user)->get('/')->assertOk()->assertViewHas('progressPercent', 67)->assertViewHas('streak', 0);
+    $this->actingAs($user)->get('/')->assertOk()->assertViewHas('progressPercent', 67)->assertViewHas('streak', 3);
     $this->get('/progress')->assertOk()->assertViewHas('weeklyPercent', 52)->assertViewHas('bestStreak', 3)
         ->assertViewHas('weakHabit', fn ($habit) => $habit->id === $habits->last()->id)
         ->assertViewHas('chartDays', fn ($days) => count($days) === 7 && $days[6]['percent'] === 67);

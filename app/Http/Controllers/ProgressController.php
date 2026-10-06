@@ -18,12 +18,12 @@ class ProgressController extends Controller
         $totalCount = count($habitIds);
         $weekStart = $today->copy()->subDays(6);
         $rangeStart = $today->copy()->subDays(364);
-        $days = $metrics->scheduledDays($user, $dailyHabits, $rangeStart, $today);
+        $days = $metrics->scheduledDays($user, $metrics->historyHabits($user), $rangeStart, $today);
         $chartDays = array_values(array_slice($days, -7, null, true));
         $weeklyDone = array_sum(array_column($chartDays, 'done'));
         $weeklyTotal = array_sum(array_column($chartDays, 'total'));
         $weeklyPercent = $weeklyTotal ? (int) round($weeklyDone / $weeklyTotal * 100) : 0;
-        $bestStreak = $metrics->scheduledStreaks($days)['best'];
+        $bestStreak = $metrics->scheduledStreaks($days, $today)['best'];
 
         $weakHabit = null;
         $weakHabitCount = null;

@@ -25,8 +25,8 @@ class DashboardController extends Controller
         $progressPercent = $totalCount > 0 ? (int) round(($completedCount / $totalCount) * 100) : 0;
 
         $rangeStart = $today->copy()->subDays(364);
-        $days = $metrics->scheduledDays($user, $activeHabits, $rangeStart, $today);
-        $streak = $metrics->scheduledStreaks($days)['current'];
+        $days = $metrics->scheduledDays($user, $metrics->historyHabits($user), $rangeStart, $today);
+        $streak = $metrics->scheduledStreaks($days, $today)['current'];
 
         $weekStart = $today->copy()->subDays(6);
         $focusHabit = null;
@@ -43,12 +43,13 @@ class DashboardController extends Controller
             }
         }
 
+        $weeklyGoals = $metrics->weeklyGoals($user, $today);
         $liveProgress = [
             'completed' => $completedCount, 'total' => $totalCount, 'percent' => $progressPercent,
             'streak' => $streak, 'ids' => $completedHabitIds,
             'focusName' => $focusHabit?->name ?? 'Find your rhythm',
             'focusText' => $focusHabit ? "Completed {$focusHabitCount} of {$focusHabitTarget} scheduled days in the last 7 days. Make a little space for it today." : 'Your least-completed habit scheduled today will appear here once you add a habit.',
-            'weekly' => $metrics->weeklyGoals($user, $today)->mapWithKeys(fn ($goal) => [$goal['habit']->id => $goal['done']])->all(),
+            'weekly' => $weeklyGoals->mapWithKeys(fn ($goal) => [$goal['habit']->id => $goal['done']])->all(),
         ];
         if ($request->expectsJson()) {
             return response()->json($liveProgress)->header('Cache-Control', 'no-store');
@@ -60,7 +61,7 @@ class DashboardController extends Controller
             'earlierChecks' => $user->habitCompletions()->with('habit')->where('completed_on', '!=', $today->toDateString())
                 ->whereIn('verification_status', ['queued', 'checking', 'failed'])->latest('verification_requested_at')->limit(10)->get(),
             'today' => $today,
-            'weeklyGoals' => $metrics->weeklyGoals($user, $today),
+            'weeklyGoals' => $weeklyGoals,
             'weeklyCompletedToday' => $metrics->completedHabitIdsForDate($user, $activeHabits->where('schedule_type', 'weekly')->pluck('id')->all(), $today),
             'dailyHabits' => $dailyHabits,
             'completedHabitIds' => $completedHabitIds,

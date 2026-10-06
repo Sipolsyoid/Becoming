@@ -13,9 +13,6 @@ class HabitMetrics
     {
         $counts = [];
         foreach ($habits as $habit) {
-            if ($habit->schedule_type === 'weekly') {
-                continue;
-            }
             $target = 0;
             for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
                 if ($habit->isDueOn($date)) {
@@ -59,13 +56,16 @@ class HabitMetrics
         return $days;
     }
 
-    public function scheduledStreaks(array $days): array
+    public function scheduledStreaks(array $days, ?Carbon $today = null): array
     {
         $current = $best = 0;
         foreach ($days as $day) {
             if ($day['total'] === 0) {
                 continue;
             } // Rest days neither add to nor break a streak.
+            if (! $day['perfect'] && $today && $day['date']->toDateString() === $today->toDateString()) {
+                continue; // Today can still be completed; only a finished due day can break a streak.
+            }
             $current = $day['perfect'] ? $current + 1 : 0;
             $best = max($best, $current);
         }
@@ -73,12 +73,51 @@ class HabitMetrics
         return ['current' => $current, 'best' => $best];
     }
 
+    public function historyHabits(User $user): Collection
+    {
+        return $user->habits()->with('scheduleVersions')->orderBy('created_at')->orderBy('id')->get();
+    }
+
     public function weeklyGoals(User $user, Carbon $today): Collection
     {
-        $habits = $this->dailyHabits($user)->where('schedule_type', 'weekly');
-        $counts = $this->completionCountsByHabit($user, $habits->pluck('id')->all(), $today->copy()->startOfWeek(Carbon::MONDAY), $today);
+        return $this->weeklyHistory($user, $today, 1)->first()['goals']
+            ->filter(fn ($goal) => $goal['habit']->is_daily && $goal['habit']->schedule_type === 'weekly');
+    }
 
-        return $habits->map(fn ($habit) => ['habit' => $habit, 'done' => $counts[$habit->id] ?? 0, 'target' => $habit->weekly_target]);
+    public function weeklyHistory(User $user, Carbon $today, int $weeks = 8): Collection
+    {
+        $habits = $this->historyHabits($user);
+        $start = $today->copy()->startOfWeek(Carbon::MONDAY)->subWeeks($weeks - 1);
+        $approved = $user->habitCompletions()->where('ai_status', 'approved')
+            ->whereBetween('completed_on', [$start->toDateString(), $today->toDateString()])
+            ->get(['habit_id', 'completed_on'])->groupBy('habit_id');
+        $history = collect();
+        for ($week = $start->copy(); $week->lte($today); $week->addWeek()) {
+            $end = $week->copy()->addDays(6);
+            $until = $end->min($today);
+            $goals = collect();
+            foreach ($habits as $habit) {
+                $target = null;
+                $dates = [];
+                for ($date = $week->copy(); $date->lte($until); $date->addDay()) {
+                    $schedule = $habit->scheduleOn($date);
+                    if ($schedule?->is_active && $schedule->schedule_type === 'weekly') {
+                        $target = $schedule->weekly_target;
+                        $dates[] = $date->toDateString();
+                    }
+                }
+                if ($target === null) {
+                    continue;
+                }
+                $done = ($approved[$habit->id] ?? collect())->filter(fn ($row) => in_array($row->completed_on->toDateString(), $dates, true))->count();
+                $goals->push(['habit' => $habit, 'done' => $done, 'target' => $target,
+                    'reached' => $done >= $target, 'partial' => count($dates) < ($week->isSameDay($today->copy()->startOfWeek(Carbon::MONDAY)) ? $today->isoWeekday() : 7)]);
+            }
+            $history->push(['start' => $week->copy(), 'end' => $week->copy()->addDays(6),
+                'current' => $week->isSameDay($today->copy()->startOfWeek(Carbon::MONDAY)), 'goals' => $goals]);
+        }
+
+        return $history->reverse()->values();
     }
 
     /**
@@ -87,6 +126,7 @@ class HabitMetrics
     public function dailyHabits(User $user): Collection
     {
         return $user->habits()
+            ->with('scheduleVersions')
             ->where('is_daily', true)
             ->orderBy('created_at')
             ->get();
