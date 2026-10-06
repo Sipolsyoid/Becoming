@@ -82,6 +82,8 @@ The environment template uses file caching and log mail for local development. C
 
 Open **Settings** in the navigation. Choose a timezone, or use **Use device timezone**, and save. The header date, due weekdays, completion dates, daily statistics, history range, and Monday weekly reset all use that timezone, including daylight saving changes. Server timestamps remain UTC. Existing completion dates are not rewritten when the timezone changes; new uploads use the local date captured when the request begins.
 
+The dashboard shows its local date and timezone. With JavaScript enabled, it reloads at local midnight and rechecks the date when the tab regains focus, becomes visible, or reconnects. Yesterday's approved photos remain in history and do not mark today's daily habits complete. Weekly totals continue until the Monday reset.
+
 Reminders are off by default. Enable **Email reminders**, choose a local time, and save. Uncheck the same control and save to stop future reminders. One email per local calendar date lists only unfinished due habits and unfinished weekly goals. Paused habits, off-days, reached weekly targets, and habits already approved today are excluded. A missed run catches up later that day; it does not send a backlog for earlier days. A skipped daylight saving time sends at the next run after the clock jump; a repeated time does not produce a second email. Changing time or timezone does not clear the last-sent date.
 
 Run `php artisan migrate` after pulling these changes. For actual delivery:

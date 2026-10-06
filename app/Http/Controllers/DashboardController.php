@@ -45,6 +45,8 @@ class DashboardController extends Controller
 
         $weeklyGoals = $metrics->weeklyGoals($user, $today);
         $liveProgress = [
+            'date' => $today->toDateString(), 'timezone' => $user->timezone,
+            'dayEndsInMs' => (int) $user->localNow()->diffInMilliseconds($today->copy()->addDay()),
             'completed' => $completedCount, 'total' => $totalCount, 'percent' => $progressPercent,
             'streak' => $streak, 'ids' => $completedHabitIds,
             'focusName' => $focusHabit?->name ?? 'Find your rhythm',

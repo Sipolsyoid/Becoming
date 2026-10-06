@@ -2,11 +2,12 @@
 <x-slot name="header">
 <h1>Today is a fresh start.</h1>
 </x-slot>
-<div x-data="liveProgress(@js($liveProgress), @js(route('dashboard')))" @photo-checked.window="refresh()">
+<div x-data="liveProgress(@js($liveProgress), @js(route('dashboard')))" @photo-checked.window="refresh()" @focus.window="resume()" @visibilitychange.document="resume()" @pageshow.window="resume()" @online.window="resume()">
 <div class="page-content">
 <section class="today-banner">
 <div>
 <p class="eyebrow">YOUR DAILY RHYTHM</p>
+<p class="text-sm">{{ $today->format('j F Y') }} · {{ auth()->user()->timezone }} · <a class="underline" href="{{ route('settings.edit') }}">Change timezone</a></p>
 <h2 x-text="stats.total > 0 && stats.completed === stats.total ? 'You showed up for yourself.' : 'Small steps, every day.'">{{ $totalCount > 0 && $completedCount === $totalCount ? 'You showed up for yourself.' : 'Small steps, every day.' }}</h2>
 <p x-text="stats.total > 0 && stats.completed === stats.total ? 'All habits scheduled for today are complete. Take a moment to enjoy it.' : 'Choose one habit. Give it your attention. Build from there.'">{{ $totalCount > 0 && $completedCount === $totalCount ? 'All habits scheduled for today are complete. Take a moment to enjoy it.' : 'Choose one habit. Give it your attention. Build from there.' }}</p>
 <a href="{{ route('habits.index') }}" class="banner-link">Manage your habits ↗</a>
