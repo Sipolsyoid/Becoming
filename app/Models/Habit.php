@@ -20,6 +20,10 @@ class Habit extends Model
 
     protected static function booted(): void
     {
+        static::creating(function (Habit $habit) {
+            $habit->sort_order = ((int) static::where('user_id', $habit->user_id)->max('sort_order')) + 1;
+        });
+
         static::saved(function (Habit $habit) {
             $isCreation = $habit->wasRecentlyCreated && $habit->getChanges() === [];
             if (! $isCreation && ! $habit->wasChanged(['is_daily', 'schedule_type', 'weekdays', 'weekly_target'])) {
@@ -49,7 +53,7 @@ class Habit extends Model
 
     protected function casts(): array
     {
-        return ['is_daily' => 'boolean', 'weekdays' => 'array', 'weekly_target' => 'integer'];
+        return ['archived_at' => 'datetime', 'archived_was_active' => 'boolean', 'sort_order' => 'integer', 'is_daily' => 'boolean', 'weekdays' => 'array', 'weekly_target' => 'integer'];
     }
 
     public function isDueOn(CarbonInterface $date): bool

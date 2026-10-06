@@ -24,6 +24,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/habits', [HabitController::class, 'index'])->name('habits.index');
     Route::post('/habits', [HabitController::class, 'store'])->name('habits.store');
     Route::patch('/habits/{habit}', [HabitController::class, 'update'])->name('habits.update');
+    Route::post('/habits/{habit}/archive', [HabitController::class, 'archive'])->name('habits.archive');
+    Route::post('/habits/{habit}/restore', [HabitController::class, 'restore'])->name('habits.restore');
+    Route::post('/habits/{habit}/move', [HabitController::class, 'move'])->name('habits.move');
     Route::delete('/habits/{habit}', [HabitController::class, 'destroy'])->name('habits.destroy');
     Route::post('/habits/{habit}/complete-with-photo', [HabitCompletionController::class, 'submitPhoto'])
         ->name('habits.complete');

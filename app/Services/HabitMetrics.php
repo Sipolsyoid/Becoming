@@ -75,7 +75,7 @@ class HabitMetrics
 
     public function historyHabits(User $user): Collection
     {
-        return $user->habits()->with('scheduleVersions')->orderBy('created_at')->orderBy('id')->get();
+        return $user->habits()->with('scheduleVersions')->orderBy('sort_order')->orderBy('created_at')->orderBy('id')->get();
     }
 
     public function weeklyGoals(User $user, Carbon $today): Collection
@@ -128,7 +128,7 @@ class HabitMetrics
         return $user->habits()
             ->with('scheduleVersions')
             ->where('is_daily', true)
-            ->orderBy('created_at')
+            ->orderBy('sort_order')->orderBy('created_at')->orderBy('id')
             ->get();
     }
 

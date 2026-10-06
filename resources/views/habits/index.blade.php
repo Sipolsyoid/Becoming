@@ -60,6 +60,13 @@
                         </div>
                     </div>
 
+                    <form method="GET" class="mt-6 flex flex-wrap items-end gap-3">
+                        <div><label for="search">Search habits</label><input id="search" name="q" value="{{ request('q') }}" maxlength="80" class="block rounded-xl"></div>
+                        <div><label for="status">Status</label><select id="status" name="status" class="block rounded-xl">@foreach (['current'=>'Current habits','active'=>'Active','paused'=>'Paused','archived'=>'Archived','all'=>'All habits'] as $value=>$label)<option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>@endforeach</select></div>
+                        <div><label for="filter-category">Category</label><select id="filter-category" name="category" class="block rounded-xl"><option value="">All categories</option>@foreach($categories as $category)<option @selected(request('category') === $category)>{{ $category }}</option>@endforeach</select></div>
+                        <button class="action-button">Apply filters</button><a href="{{ route('habits.index') }}">Reset</a>
+                    </form>
+                    <p class="mt-3 text-sm">{{ $habits->count() }} habits shown. Reset filters to reorder current habits.</p>
                     <div class="mt-6 divide-y divide-[#2B3E51]/10">
                         @forelse ($habits as $habit)
                             <div class="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -72,11 +79,23 @@
                                             </span>
                                         @endif
 
-                                        <span class="status-pill">{{ $habit->scheduleLabel() }}</span>
+                                        <span class="status-pill">{{ $habit->archived_at ? 'Archived' : $habit->scheduleLabel() }}</span>
                                     </div>
                                 </div>
 
                                 <div class="flex flex-wrap items-center gap-3">
+                                    @if ($habit->archived_at)
+                                    <form method="POST" action="{{ route('habits.restore', $habit) }}">@csrf<button class="action-button">Restore</button></form>
+                                    @else
+                                    <details class="w-full" @if(old('editing_habit') == $habit->id) open @endif>
+                                        <summary class="cursor-pointer py-2 font-semibold">Edit details</summary>
+                                        <form method="POST" action="{{ route('habits.update', $habit) }}" class="mt-3 space-y-3">
+                                            @csrf @method('PATCH')<input type="hidden" name="editing_habit" value="{{ $habit->id }}">
+                                            <div><label for="name-{{ $habit->id }}">Habit name</label><input id="name-{{ $habit->id }}" name="name" required maxlength="80" class="block w-full rounded-xl" value="{{ old('editing_habit') == $habit->id ? old('name') : $habit->name }}"></div>
+                                            <div><label for="category-{{ $habit->id }}">Category</label><input id="category-{{ $habit->id }}" name="category" maxlength="40" class="block w-full rounded-xl" value="{{ old('editing_habit') == $habit->id ? old('category') : $habit->category }}"></div>
+                                            <button class="action-button">Save details</button>
+                                        </form>
+                                    </details>
                                     <details class="w-full">
                                         <summary class="cursor-pointer text-sm font-semibold py-2">Change schedule</summary>
                                         <form method="POST" action="{{ route('habits.update', $habit) }}" class="mt-3">
@@ -95,6 +114,14 @@
                                         </button>
                                     </form>
 
+                                    <form method="POST" action="{{ route('habits.archive', $habit) }}">@csrf<button class="action-button">Archive</button></form>
+                                    @if ($status === 'current' && !request('q') && !request('category'))
+                                    <form method="POST" action="{{ route('habits.move', $habit) }}" class="flex gap-2">@csrf
+                                        <button name="direction" value="up" aria-label="Move {{ $habit->name }} up" @disabled($loop->first) class="action-button disabled:opacity-40">Up</button>
+                                        <button name="direction" value="down" aria-label="Move {{ $habit->name }} down" @disabled($loop->last) class="action-button disabled:opacity-40">Down</button>
+                                    </form>
+                                    @endif
+                                    @endif
                                     <form method="POST" action="{{ route('habits.destroy', $habit) }}" onsubmit="return confirm('{{ __('Delete this habit and its completion history? This cannot be undone.') }}');">
                                         @csrf
                                         @method('DELETE')
@@ -106,7 +133,7 @@
                             </div>
                         @empty
                             <div class="py-10 text-center text-sm text-[#2B3E51]/70">
-                                {{ __("You don't have any habits yet. Add your first one above.") }}
+                                {{ __("No habits match this view. Add a habit above or reset your filters.") }}
                             </div>
                         @endforelse
                     </div>

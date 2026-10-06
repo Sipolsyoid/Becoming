@@ -32,6 +32,14 @@ Verification runs on the dedicated `photos` database queue, with a 180-second Ol
 
 Dates use each user’s saved timezone (UTC until changed in Settings). Historical percentages use the schedule recorded for each date and exclude dates before habit creation. Deleting a habit removes its database completions but retains photo files.
 
+## Habit management
+
+Open **Habits** to edit names and categories, search by name, or filter by status and category. Names must be unique within your account, including archived habits. Editing details keeps existing completion records.
+
+**Archive** hides a habit from the current list, stops new check-ins and reminders, and records a pause from the current local day. Its earlier schedule and completion history remain available. Choose **Archived** in the status filter to restore it to its previous active or paused state. Photos already submitted can finish verification. Permanent deletion remains separate and removes completion history.
+
+Use **Up** and **Down** in the unfiltered current list to save your preferred order. The dashboard uses this order too; new habits go at the end. Reordering is available without JavaScript and does not change schedules or progress. Run `php artisan migrate` to add the archive and ordering fields.
+
 ## Custom schedules
 
 Habits support every day, selected weekdays, or a flexible target of 1–7 times per week. Choose a schedule when adding a habit, or expand **Change schedule** on an existing habit. **Pause** keeps the schedule and completion records; **Resume** restores it. Existing active habits remain daily after migration, and previously inactive habits remain paused.
