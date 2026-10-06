@@ -26,6 +26,6 @@
     <div x-show="type === 'weekly'">
     <label for="{{ $prefix }}-target" class="text-xs text-slate-600 block mt-3">For times per week: target (1–7)</label>
     <input id="{{ $prefix }}-target" type="number" name="weekly_target" min="1" max="7" :disabled="type !== 'weekly'" value="{{ $restore ? old('weekly_target', $habit?->weekly_target ?? 3) : ($habit?->weekly_target ?? 3) }}" class="mt-1 w-24">
-    <p class="text-xs text-slate-500 mt-2">Weekly goals reset Monday, UTC. One approved completion per day.</p>
+    <p class="text-xs text-slate-500 mt-2">Weekly goals reset Monday in {{ auth()->user()->timezone }}. One approved completion per day.</p>
     </div>
 </fieldset>

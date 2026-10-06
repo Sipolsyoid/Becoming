@@ -24,6 +24,7 @@
                     <x-nav-link :href="route('history')" :active="request()->routeIs('history')">
                         {{ __('History') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('settings.edit')" :active="request()->routeIs('settings.*')">Settings</x-nav-link>
                 </div>
             </div>
 
@@ -69,6 +70,7 @@
             <x-responsive-nav-link :href="route('history')" :active="request()->routeIs('history')">
                 {{ __('History') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('settings.edit')" :active="request()->routeIs('settings.*')">Settings</x-responsive-nav-link>
         </div>
 
         <div class="pt-4 pb-1 border-t border-[#2B3E51]/10">

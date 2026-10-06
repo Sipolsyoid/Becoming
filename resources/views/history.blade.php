@@ -42,5 +42,5 @@
             </div>
         </div>
     </div>
-<p class="quiet-note max-w-7xl mx-auto px-6 pb-6">History uses your current schedules. Rest days are excluded from streaks; weekly goals are tracked separately in Progress. Changing a schedule updates past percentages. Dates use UTC.</p>
+<p class="quiet-note max-w-7xl mx-auto px-6 pb-6">History uses your current schedules. Rest days are excluded from streaks; weekly goals are tracked separately in Progress. Changing a schedule updates past percentages. Dates use {{ auth()->user()->timezone }}. Existing completions keep their recorded dates when you change timezone.</p>
 </x-app-layout>

@@ -12,7 +12,7 @@
 <div class="page-heading-inner">
 <div>
 <p class="eyebrow">YOUR EVERYDAY, A LITTLE BETTER</p>{{ $header }}</div>
-<span class="date-chip">{{ now()->format('l, j F') }} · UTC</span>
+<a href="{{ route('settings.edit') }}" class="date-chip">{{ auth()->user()->localNow()->format('l, j F') }} · {{ auth()->user()->timezone }}</a>
 </div>
 </header>@endisset
 <main id="main-content" tabindex="-1">@if(session('status'))<div class="feedback-message" role="status">{{ session('status') }}</div>@endif{{ $slot }}</main>

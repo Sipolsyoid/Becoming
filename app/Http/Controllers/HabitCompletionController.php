@@ -17,8 +17,10 @@ class HabitCompletionController extends Controller
         HabitPhotoVerifier $verifier,
     ): RedirectResponse {
         abort_unless($habit->user_id === $request->user()->id, 404);
+        $user = $request->user();
+        $today = $user->localToday();
 
-        if (! $habit->is_daily || ($habit->schedule_type !== 'weekly' && ! $habit->isDueOn(today()))) {
+        if (! $habit->is_daily || ($habit->schedule_type !== 'weekly' && ! $habit->isDueOn($today))) {
             return back()->withErrors(['photo' => 'This habit is not scheduled for today.']);
         }
 
@@ -26,8 +28,7 @@ class HabitCompletionController extends Controller
             'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
-        $user = $request->user();
-        $completedOn = today()->toDateString();
+        $completedOn = $today->toDateString();
 
         $existing = $user
             ->habitCompletions()
@@ -38,7 +39,7 @@ class HabitCompletionController extends Controller
         $previousPhotoPath = $existing?->photo_path;
         if ($habit->schedule_type === 'weekly' && $existing?->ai_status !== 'approved') {
             $weekCount = $user->habitCompletions()->where('habit_id', $habit->id)->where('ai_status', 'approved')
-                ->whereBetween('completed_on', [today()->startOfWeek(Carbon::MONDAY)->toDateString(), $completedOn])->count();
+                ->whereBetween('completed_on', [$today->copy()->startOfWeek(Carbon::MONDAY)->toDateString(), $completedOn])->count();
             if ($weekCount >= $habit->weekly_target) {
                 return back()->withErrors(['photo' => 'You have already reached this week’s goal.']);
             }

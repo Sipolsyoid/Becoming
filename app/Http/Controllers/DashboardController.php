@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Services\HabitMetrics;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -12,7 +11,7 @@ class DashboardController extends Controller
     public function __invoke(Request $request, HabitMetrics $metrics): View
     {
         $user = $request->user();
-        $today = Carbon::today();
+        $today = $user->localToday();
 
         $activeHabits = $metrics->dailyHabits($user);
         $dailyHabits = $activeHabits->filter(fn ($habit) => $habit->isDueOn($today));

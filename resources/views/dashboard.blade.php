@@ -57,7 +57,7 @@
 <div class="insight-card">
 <p class="eyebrow">A LITTLE EXTRA ATTENTION</p>
 <h3>{{ $focusHabit?->name ?? 'Find your rhythm' }}</h3>
-<p>{{ $focusHabit ? 'Completed '.$focusHabitCount.' of '.$focusHabitTarget.' scheduled days this week. Make a little space for it today.' : 'Your least-completed habit scheduled today will appear here once you add a habit.' }}</p>
+<p>{{ $focusHabit ? 'Completed '.$focusHabitCount.' of '.$focusHabitTarget.' scheduled days in the last 7 days. Make a little space for it today.' : 'Your least-completed habit scheduled today will appear here once you add a habit.' }}</p>
 </div>
 <p class="quiet-note">Your photos are private. Only approved checks count toward your progress.</p>
 </aside>

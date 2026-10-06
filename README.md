@@ -30,7 +30,7 @@ Verification is synchronous, with a 180-second HTTP timeout. Only `approved` res
 - `npm run build`: compile production assets.
 - `composer check-platform-reqs`: check installed PHP requirements.
 
-Dates use UTC. Historical percentages use the current active schedules. Deleting a habit removes its database completions but retains photo files.
+Dates use each user’s saved timezone (UTC until changed in Settings). Historical percentages use the current active schedules. Deleting a habit removes its database completions but retains photo files.
 
 ## Custom schedules
 
@@ -38,7 +38,7 @@ Habits support every day, selected weekdays, or a flexible target of 1–7 times
 
 The dashboard shows daily/weekday habits only when due. Percentages and the seven-day graph use each date's scheduled occurrences, excluding off-day approvals. Rest days neither add to nor break a scheduled-day streak; an incomplete due day breaks it. Focus suggestions compare the fraction of scheduled days completed, with creation order breaking ties.
 
-Weekly goals appear separately on the dashboard and Progress, reset Monday at 00:00 UTC, and count at most one approved completion per date. They do not affect daily percentages or streaks. Uploads are unavailable after the weekly target is reached, unless replacing today's existing approved record. Rejected or failed attempts do not count. Paused and off-day habits cannot accept uploads.
+Weekly goals appear separately on the dashboard and Progress, reset Monday at 00:00 in the user’s timezone, and count at most one approved completion per date. They do not affect daily percentages or streaks. Uploads are unavailable after the weekly target is reached, unless replacing today's existing approved record. Rejected or failed attempts do not count. Paused and off-day habits cannot accept uploads.
 
 Schedule changes apply to past calculations too; schedule history snapshots are not implemented. This feature extends the original FP-04/05/07–14 specification, including rest-day and weekly-goal behavior. Run `php artisan migrate` when deploying the change; the local database has already been migrated.
 
@@ -47,3 +47,17 @@ Schedule changes apply to past calculations too; schedule history snapshots are 
 The September 2026 interface adds local photo previews, file guidance, a waiting message during synchronous verification, and success feedback for habit changes. This extends the original FP-08 interface description, which said there was no preview or waiting state. The server still validates every upload and the completion rules are unchanged. Progress charts show actual zero-height bars for 0%, and history distinguishes today in progress from complete and incomplete days.
 
 The environment template uses file caching and log mail for local development. Configure production credentials, HTTPS and `APP_DEBUG=false` before deployment. Never commit `.env`.
+
+## Personal timezone and email reminders
+
+Open **Settings** in the navigation. Choose a timezone, or use **Use device timezone**, and save. The header date, due weekdays, completion dates, daily statistics, history range, and Monday weekly reset all use that timezone, including daylight saving changes. Server timestamps remain UTC. Existing completion dates are not rewritten when the timezone changes; new uploads use the local date captured when the request begins.
+
+Reminders are off by default. Enable **Email reminders**, choose a local time, and save. Uncheck the same control and save to stop future reminders. One email per local calendar date lists only unfinished due habits and unfinished weekly goals. Paused habits, off-days, reached weekly targets, and habits already approved today are excluded. A missed run catches up later that day; it does not send a backlog for earlier days. A skipped daylight saving time sends at the next run after the clock jump; a repeated time does not produce a second email. Changing time or timezone does not clear the last-sent date.
+
+Run `php artisan migrate` after pulling these changes. For actual delivery:
+
+1. Configure `MAIL_MAILER=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and (if required by your provider) `MAIL_SCHEME` in your private `.env`. Set `APP_URL` to the address users can open from email. Run `php artisan config:clear` after changes. Log/array mailers are previews only; the Settings page indicates that mode.
+2. Locally, keep `php artisan schedule:work` running in another terminal. Production should invoke `php artisan schedule:run` every minute using its task scheduler. No queue worker is needed for reminder delivery.
+3. `php artisan habits:send-reminders` manually processes due reminders using the configured mailer. Do not use this command to test against real users unintentionally. Automated tests fake delivery.
+
+Reminder runs use per-user cache locks plus a saved last-sent date to avoid normal duplicate runs. Use a shared lock-capable cache when running multiple servers. Failed deliveries are logged and retried on subsequent runs. As with SMTP generally, a process crash after the server accepts an email but before its receipt is saved can cause a retry; exactly-once email delivery is not guaranteed.

@@ -1,7 +1,7 @@
 @props(['goals', 'completedToday' => [], 'upload' => false])
 @if ($goals->isNotEmpty())
 <section class="mt-8">
-    <div class="section-heading"><h2>Weekly goals</h2><span>Monday–Sunday · UTC</span></div>
+    <div class="section-heading"><h2>Weekly goals</h2><span>Monday–Sunday · {{ auth()->user()->timezone }}</span></div>
     <p class="quiet-note mb-4">Choose your days. Weekly goals count separately from daily percentages and streaks.</p>
     <div class="grid gap-4 md:grid-cols-2">
         @foreach ($goals as $goal)

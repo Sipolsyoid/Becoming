@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Services\HabitMetrics;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class ProgressController extends Controller
@@ -12,7 +11,7 @@ class ProgressController extends Controller
     public function __invoke(Request $request, HabitMetrics $metrics): View
     {
         $user = $request->user();
-        $today = Carbon::today();
+        $today = $user->localToday();
 
         $dailyHabits = $metrics->dailyHabits($user);
         $habitIds = $dailyHabits->where('schedule_type', '!=', 'weekly')->pluck('id')->all();
