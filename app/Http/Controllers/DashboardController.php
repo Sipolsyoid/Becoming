@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Services\HabitMetrics;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, HabitMetrics $metrics): View
+    public function __invoke(Request $request, HabitMetrics $metrics): View|JsonResponse
     {
         $user = $request->user();
         $today = $user->localToday();
@@ -42,7 +43,22 @@ class DashboardController extends Controller
             }
         }
 
+        $liveProgress = [
+            'completed' => $completedCount, 'total' => $totalCount, 'percent' => $progressPercent,
+            'streak' => $streak, 'ids' => $completedHabitIds,
+            'focusName' => $focusHabit?->name ?? 'Find your rhythm',
+            'focusText' => $focusHabit ? "Completed {$focusHabitCount} of {$focusHabitTarget} scheduled days in the last 7 days. Make a little space for it today." : 'Your least-completed habit scheduled today will appear here once you add a habit.',
+            'weekly' => $metrics->weeklyGoals($user, $today)->mapWithKeys(fn ($goal) => [$goal['habit']->id => $goal['done']])->all(),
+        ];
+        if ($request->expectsJson()) {
+            return response()->json($liveProgress)->header('Cache-Control', 'no-store');
+        }
+
         return view('dashboard', [
+            'liveProgress' => $liveProgress,
+            'photoChecks' => $user->habitCompletions()->where('completed_on', $today->toDateString())->get()->keyBy('habit_id'),
+            'earlierChecks' => $user->habitCompletions()->with('habit')->where('completed_on', '!=', $today->toDateString())
+                ->whereIn('verification_status', ['queued', 'checking', 'failed'])->latest('verification_requested_at')->limit(10)->get(),
             'today' => $today,
             'weeklyGoals' => $metrics->weeklyGoals($user, $today),
             'weeklyCompletedToday' => $metrics->completedHabitIdsForDate($user, $activeHabits->where('schedule_type', 'weekly')->pluck('id')->all(), $today),

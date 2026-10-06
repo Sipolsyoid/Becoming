@@ -31,13 +31,61 @@ test('unsupported and oversized files block submission; a valid replacement reco
     state.destroy();
 });
 
-test('submission enters waiting state and prevents duplicate submissions', () => {
+test('upload saves without waiting for verification and polling updates the result', async () => {
+    const originalFetch = globalThis.fetch;
+    const originalDocument = globalThis.document;
     const state = photoProof();
-    let blocked = 0;
-    const event = { preventDefault() { blocked++; } };
-    state.submit(event);
-    assert.equal(state.busy, true);
-    assert.equal(blocked, 0);
-    state.submit(event);
-    assert.equal(blocked, 1);
+    state.$el = { querySelector: () => ({ reset() {} }) };
+    let dispatched = '';
+    state.$dispatch = (name) => { dispatched = name; };
+    globalThis.document = { hidden: false };
+    try {
+        globalThis.fetch = async () => new Response(JSON.stringify({ status: 'queued', status_url: '/checks/1' }), { status: 202 });
+        await state.send('/upload', new FormData());
+        assert.equal(state.busy, false);
+        assert.equal(state.pending, true);
+        let prevented = false;
+        await state.submit({ preventDefault() { prevented = true; } });
+        assert.equal(prevented, true);
+        globalThis.fetch = async () => new Response(JSON.stringify({ status: 'approved' }));
+        await state.poll();
+        assert.equal(state.done, true);
+        assert.equal(state.pending, false);
+        assert.equal(dispatched, 'photo-checked');
+    } finally { state.destroy(); globalThis.fetch = originalFetch; globalThis.document = originalDocument; }
+});
+
+test('upload errors recover controls and preserve the selected preview', async () => {
+    const originalFetch = globalThis.fetch;
+    const state = photoProof();
+    state.select(selection(new Blob(['photo'], { type: 'image/jpeg' })));
+    try {
+        globalThis.fetch = async () => new Response(JSON.stringify({ errors: { photo: ['Please choose another photo.'] } }), { status: 422 });
+        await state.send('/upload', new FormData());
+        assert.equal(state.busy, false);
+        assert.equal(state.error, 'Please choose another photo.');
+        assert.match(state.preview, /^blob:/);
+        globalThis.fetch = async () => { throw new Error('offline'); };
+        await state.send('/upload', new FormData());
+        assert.match(state.error, /may have saved/);
+        assert.equal(state.busy, false);
+    } finally { state.destroy(); globalThis.fetch = originalFetch; }
+});
+
+test('polling backs off on network errors and stops on expired sessions', async () => {
+    const originalFetch = globalThis.fetch;
+    const originalDocument = globalThis.document;
+    const state = photoProof({ status: 'checking', status_url: '/checks/1' });
+    globalThis.document = { hidden: false };
+    try {
+        globalThis.fetch = async () => { throw new Error('offline'); };
+        await state.poll();
+        assert.equal(state.pending, true);
+        assert.match(state.connectionNote, /Reconnecting/);
+        assert.equal(state.failures, 1);
+        globalThis.fetch = async () => new Response('{}', { status: 401 });
+        await state.poll();
+        assert.equal(state.stopped, true);
+        assert.match(state.connectionNote, /Sign in/);
+    } finally { state.destroy(); globalThis.fetch = originalFetch; globalThis.document = originalDocument; }
 });

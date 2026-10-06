@@ -21,7 +21,7 @@ The private storage directory is `storage/app/private`. PHP needs write access t
 
 Use your existing Ollama service and vision model. `OLLAMA_BASE_URL` and `OLLAMA_MODEL` select the service and model; the template defaults to `http://127.0.0.1:11434` and `gemma3:4b`. Start your service when testing real photos. Automated tests fake its responses and never need the real service.
 
-Verification is synchronous, with a 180-second HTTP timeout. Only `approved` results count. A failed save or invalid verdict does not replace the previous completion; a successful retry replaces the same day's proof. Cleanup failures are logged without discarding a successfully saved new proof.
+Verification runs on the dedicated `photos` database queue, with a 180-second Ollama HTTP timeout. Uploads return as soon as the file and job are saved. Only `approved` results count. An unsuccessful check preserves any previous completion and retains the new photo for retry; a valid verdict replaces the same day’s proof. Cleanup failures are logged without discarding a successfully saved new proof.
 
 ## Verification
 
@@ -44,7 +44,7 @@ Schedule changes apply to past calculations too; schedule history snapshots are 
 
 ## Interface update
 
-The September 2026 interface adds local photo previews, file guidance, a waiting message during synchronous verification, and success feedback for habit changes. This extends the original FP-08 interface description, which said there was no preview or waiting state. The server still validates every upload and the completion rules are unchanged. Progress charts show actual zero-height bars for 0%, and history distinguishes today in progress from complete and incomplete days.
+The September 2026 interface adds local photo previews, file guidance, background check status messages, and success feedback for habit changes. This extends the original FP-08 interface description, which said there was no preview or waiting state. The server still validates every upload and the completion rules are unchanged. Progress charts show actual zero-height bars for 0%, and history distinguishes today in progress from complete and incomplete days.
 
 The environment template uses file caching and log mail for local development. Configure production credentials, HTTPS and `APP_DEBUG=false` before deployment. Never commit `.env`.
 
@@ -61,3 +61,17 @@ Run `php artisan migrate` after pulling these changes. For actual delivery:
 3. `php artisan habits:send-reminders` manually processes due reminders using the configured mailer. Do not use this command to test against real users unintentionally. Automated tests fake delivery.
 
 Reminder runs use per-user cache locks plus a saved last-sent date to avoid normal duplicate runs. Use a shared lock-capable cache when running multiple servers. Failed deliveries are logged and retried on subsequent runs. As with SMTP generally, a process crash after the server accepts an email but before its receipt is saved can cause a retry; exactly-once email delivery is not guaranteed.
+
+## Background photo checks
+
+Start Ollama as usual, then keep this worker running from the project directory:
+
+```powershell
+php artisan queue:work photos --queue=photos --tries=1 --timeout=210
+```
+
+`composer run dev` now starts this worker alongside the app and Vite. This dedicated connection works even if your existing `.env` has `QUEUE_CONNECTION=sync`. The queue uses the existing `jobs` table and a 300-second retry interval, longer than the job timeout. Keep the queue on the application's database so saving the upload record and enqueuing the job commit together. Run `php artisan migrate` when deploying, and restart long-running workers after code updates (`php artisan queue:restart`). Production needs a supervised worker. The email reminder scheduler remains separate.
+
+The check-in card distinguishes uploading, queued, checking, approved, needs-review, rejected, and failed states. It polls only while a check is pending, backs off on network trouble, and pauses polling in hidden tabs. Approval updates daily totals, streaks, focus suggestions, and weekly totals without refreshing the page or clearing another selected photo. With JavaScript disabled, uploads still redirect and results can be checked by reloading.
+
+A failed or interrupted check offers **Retry saved photo**. A check stuck for ten minutes can also be retried; old workers cannot overwrite a newer attempt. Earlier unresolved checks remain on the dashboard (up to ten most recent), with their original local date. Pending checks never earn completion credit. The model's inference speed is unchanged; the app stays responsive while it works. Automated and browser checks use controlled verifier results, not a claim of real-model accuracy.

@@ -31,6 +31,16 @@ return [
 
     'connections' => [
 
+        // Separate from QUEUE_CONNECTION=sync used by older local installations.
+        'photos' => [
+            'driver' => 'database',
+            'connection' => env('DB_QUEUE_CONNECTION'),
+            'table' => 'jobs',
+            'queue' => 'photos',
+            'retry_after' => 300,
+            'after_commit' => false,
+        ],
+
         'sync' => [
             'driver' => 'sync',
         ],

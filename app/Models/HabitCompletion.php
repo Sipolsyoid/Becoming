@@ -18,6 +18,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'ai_reason',
     'ai_result',
     'analyzed_at',
+    'verification_status',
+    'verification_token',
+    'pending_photo_path',
+    'verification_reason',
+    'verification_requested_at',
 ])]
 class HabitCompletion extends Model
 {
@@ -42,6 +47,20 @@ class HabitCompletion extends Model
             'completed_on' => 'date',
             'ai_result' => 'array',
             'analyzed_at' => 'datetime',
+            'verification_requested_at' => 'datetime',
+        ];
+    }
+
+    public function checkState(): array
+    {
+        return [
+            'status' => $this->verification_status,
+            'reason' => $this->verification_reason,
+            'date' => $this->completed_on->toDateString(),
+            'approved' => $this->ai_status === 'approved',
+            'can_retry' => $this->pending_photo_path && ($this->verification_status === 'failed' || $this->verification_requested_at?->lt(now()->subMinutes(10))),
+            'status_url' => route('checks.show', $this),
+            'retry_url' => route('checks.retry', $this),
         ];
     }
 

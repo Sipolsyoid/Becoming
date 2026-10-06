@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
+    config(['queue.connections.photos.driver' => 'sync']);
     $this->travelTo(now()->setDate(2026, 9, 25)->startOfDay());
     Http::preventStrayRequests();
 });
@@ -92,7 +93,7 @@ test('a retry replaces the same days record and removes the old photo', function
     Storage::disk('local')->assertExists($new->photo_path);
 });
 
-test('invalid AI responses preserve the previous completion and clean up the new upload', function (string $content) {
+test('invalid AI responses preserve the previous completion and retain the upload for retry', function (string $content) {
     Storage::fake('local');
     $habit = Habit::factory()->create();
     Storage::disk('local')->put('old.jpg', 'old proof');
@@ -101,10 +102,12 @@ test('invalid AI responses preserve the previous completion and clean up the new
     ]);
     Http::fake(['*' => Http::response(['message' => ['content' => $content]])]);
     $this->actingAs($habit->user)->from('/')->post("/habits/{$habit->id}/complete-with-photo", ['photo' => proofUpload()])
-        ->assertRedirect('/')->assertSessionHasErrors('photo');
+        ->assertRedirect('/')->assertSessionHasNoErrors();
     expect($old->fresh()->ai_status)->toBe('approved');
     expect($old->fresh()->photo_path)->toBe('old.jpg');
-    expect(Storage::disk('local')->allFiles())->toBe(['old.jpg']);
+    expect($old->fresh()->verification_status)->toBe('failed');
+    Storage::disk('local')->assertExists($old->fresh()->pending_photo_path);
+    Storage::disk('local')->assertExists('old.jpg');
 })->with([
     'bad JSON' => '{',
     'scalar' => 'null',
@@ -114,15 +117,17 @@ test('invalid AI responses preserve the previous completion and clean up the new
     'extra property' => '{"decision":"approved","reason":"x","visible_evidence":"x","extra":true}',
 ]);
 
-test('Ollama connection failures preserve existing data and clean up new files', function () {
+test('Ollama connection failures preserve existing data and retain saved photos', function () {
     Storage::fake('local');
     Http::fake(['*' => Http::failedConnection()]);
     $habit = Habit::factory()->create();
     Storage::disk('local')->put('old.jpg', 'old proof');
     $old = HabitCompletion::factory()->create(['habit_id' => $habit->id, 'completed_on' => today(), 'photo_path' => 'old.jpg', 'ai_status' => 'approved']);
-    $this->actingAs($habit->user)->post("/habits/{$habit->id}/complete-with-photo", ['photo' => proofUpload()])->assertSessionHasErrors('photo');
+    $this->actingAs($habit->user)->post("/habits/{$habit->id}/complete-with-photo", ['photo' => proofUpload()])->assertSessionHasNoErrors();
     expect($old->fresh()->photo_path)->toBe('old.jpg');
-    expect(Storage::disk('local')->allFiles())->toBe(['old.jpg']);
+    expect($old->fresh()->verification_status)->toBe('failed');
+    Storage::disk('local')->assertExists($old->fresh()->pending_photo_path);
+    Storage::disk('local')->assertExists('old.jpg');
 });
 
 test('failed storage never invokes AI or updates a completion', function (bool $throws) {
@@ -141,6 +146,7 @@ test('cleanup failure after saving does not delete the new proof or lose the ver
     fakeVerdict();
     $disk = Mockery::mock(FilesystemAdapter::class);
     $disk->shouldReceive('putFileAs')->once()->andReturn('new.jpg');
+    $disk->shouldReceive('path')->with('new.jpg')->andReturn(public_path('img/logo.jpeg'));
     $delete = $disk->shouldReceive('delete')->with('old.jpg')->once();
     $throws ? $delete->andThrow(new RuntimeException('Cleanup failed')) : $delete->andReturn(false);
     Storage::shouldReceive('disk')->with('local')->andReturn($disk);

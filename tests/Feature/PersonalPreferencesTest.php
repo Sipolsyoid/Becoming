@@ -54,6 +54,7 @@ test('dashboard progress and history use each users local date across UTC midnig
 });
 
 test('photo approval uses the local weekday and completion date', function () {
+    config(['queue.connections.photos.driver' => 'sync']);
     $this->travelTo(Carbon::parse('2026-10-04 22:30:00', 'UTC'));
     Storage::fake('local');
     Http::preventStrayRequests();

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
+    config(['queue.connections.photos.driver' => 'sync']);
     $this->travelTo(now()->setDate(2026, 10, 5)->startOfDay()); // Monday
     Http::preventStrayRequests();
 });

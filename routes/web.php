@@ -9,6 +9,8 @@ use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
+    Route::get('/photo-checks/{completion}', [HabitCompletionController::class, 'show'])->name('checks.show');
+    Route::post('/photo-checks/{completion}/retry', [HabitCompletionController::class, 'retry'])->name('checks.retry');
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::patch('/settings', [SettingsController::class, 'update'])->name('settings.update');
     Route::get('/', DashboardController::class)->name('dashboard');
