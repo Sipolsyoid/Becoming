@@ -55,7 +55,7 @@ jobs:
           npm run build
           node --test tests/js/*.test.js
       - name: Run isolated SQLite regression suite
-        run: DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan test --compact
+        run: 'DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan test --compact'
       - name: Verify fresh MySQL migrations and real concurrent requests
         run: php tests/Integration/mysql-concurrency.php
       - name: Exercise bounded multi-user HTTP workloads
