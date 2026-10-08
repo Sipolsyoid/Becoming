@@ -10,6 +10,8 @@ After setup, run `php artisan becoming:doctor --services` for read-only checks o
 
 Requires PHP 8.3 or compatible newer 8.x with the Composer-required extensions, Composer, Node.js/npm, and MySQL. Run commands from this directory with the Laragon PHP and Node executables on PATH.
 
+Composer archive installation also needs PHP's ZIP extension or an `unzip`/`7z` executable on PATH. The clean Laragon check found ZIP disabled in the command-line PHP configuration. Enable it for that PHP version, or temporarily run Composer through `php -d extension=zip /path/to/composer.phar install` when the bundled extension is present. Existing `vendor/` files can hide this missing prerequisite, so verify it on a fresh install.
+
 1. Run `composer install` and `npm ci`.
 2. Copy `.env.example` to `.env` only for a new installation. Keep an existing `.env` and application key.
 3. Create a MySQL database named `becoming`; set `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` to your local values. The template assumes Laragon's local root account with no password; use your actual credentials.
