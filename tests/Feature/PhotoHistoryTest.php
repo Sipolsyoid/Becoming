@@ -3,6 +3,7 @@
 use App\Models\Habit;
 use App\Models\HabitCompletion;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -43,8 +44,7 @@ test('photos and detail pages reject guests and other owners', function () {
     foreach (['saved', 'pending'] as $version) {
         $this->get(route('checks.photo', [$check, $version]))->assertNotFound();
     }
-    $check->update(['user_id' => auth()->id()]);
-    $this->get(route('checks.photo', [$check, 'saved']))->assertNotFound();
+    expect(fn () => $check->update(['user_id' => auth()->id()]))->toThrow(QueryException::class);
 });
 
 test('missing unsafe and non-image paths never expose files', function () {
