@@ -12,6 +12,7 @@ test('doctor reports an unavailable model and missing runtime without sending no
 
 test('doctor recognizes the configured model and both runtime heartbeats', function () {
     config(['mail.default' => 'smtp']);
+    config(['mail.from.address' => 'reminders@becoming.test']);
     Http::fake(['*' => Http::response(['models' => [['name' => config('services.ollama.model')]]])]);
     Cache::put('photos.worker_seen_at', now()->timestamp, 300);
     Cache::put('becoming.scheduler_seen_at', now()->timestamp, 180);

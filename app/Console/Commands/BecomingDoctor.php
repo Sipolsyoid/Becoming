@@ -43,6 +43,11 @@ class BecomingDoctor extends Command
             && config('queue.connections.photos.retry_after') > 210 ? 'ok' : 'fail', 'Photo queue uses the database with retry interval longer than job timeout.');
         $check(in_array(config('mail.default'), ['log', 'array'], true) ? 'warn' : 'ok',
             in_array(config('mail.default'), ['log', 'array'], true) ? 'Email is preview only. Configure real delivery before demonstrating inbox reminders.' : 'Outgoing mail transport selected; actual delivery still requires an inbox test.');
+        if (! in_array(config('mail.default'), ['log', 'array'], true)) {
+            $sender = config('mail.from.address', '');
+            $validSender = filter_var($sender, FILTER_VALIDATE_EMAIL) && ! preg_match('/@(example\.(com|org|net)|localhost)$/i', $sender);
+            $check($validSender ? 'ok' : 'warn', 'Real mail sender must be a verified address, not a placeholder.');
+        }
         if ($this->option('services')) {
             try {
                 $tags = Http::connectTimeout(3)->timeout(5)->get(rtrim(config('services.ollama.base_url'), '/').'/api/tags');
