@@ -58,3 +58,5 @@ jobs:
         run: DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan test --compact
       - name: Verify fresh MySQL migrations and real concurrent requests
         run: php tests/Integration/mysql-concurrency.php
+      - name: Exercise bounded multi-user HTTP workloads
+        run: php tests/Integration/mysql-load.php --users=4

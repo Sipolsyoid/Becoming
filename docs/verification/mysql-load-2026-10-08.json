@@ -1,0 +1,259 @@
+{
+    "tested_at_utc": "2026-10-08T11:18:21+00:00",
+    "concurrent_users": 8,
+    "habits_per_user": 200,
+    "active_habits_per_user": 30,
+    "versions_per_habit": 11,
+    "historical_approvals_per_user": 900,
+    "scope": "Separate PHP processes exercise the HTTP kernel with auth\/session\/throttle and rendered views. Test environment bypasses CSRF. No network server, real AI inference or SMTP throughput is measured.",
+    "requests": 40,
+    "unexpected_responses": 0,
+    "wall_seconds": 3.33,
+    "p50_ms": 243.5,
+    "p95_ms": 1908,
+    "max_ms": 1912.95,
+    "max_process_memory_mb": 40,
+    "uploads": 8,
+    "samples": [
+        {
+            "route": "\/progress",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 1819.52
+        },
+        {
+            "route": "\/history",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 723.6
+        },
+        {
+            "route": "\/habits",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 244.22
+        },
+        {
+            "route": "owner isolation",
+            "status": 404,
+            "expected": 404,
+            "milliseconds": 11.09
+        },
+        {
+            "route": "upload",
+            "status": 202,
+            "expected": 202,
+            "milliseconds": 189.69
+        },
+        {
+            "route": "\/progress",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 1907.34
+        },
+        {
+            "route": "\/history",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 740.23
+        },
+        {
+            "route": "\/habits",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 246.48
+        },
+        {
+            "route": "owner isolation",
+            "status": 404,
+            "expected": 404,
+            "milliseconds": 8.06
+        },
+        {
+            "route": "upload",
+            "status": 202,
+            "expected": 202,
+            "milliseconds": 146.6
+        },
+        {
+            "route": "\/progress",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 1912.95
+        },
+        {
+            "route": "\/history",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 772.96
+        },
+        {
+            "route": "\/habits",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 242.94
+        },
+        {
+            "route": "owner isolation",
+            "status": 404,
+            "expected": 404,
+            "milliseconds": 8.88
+        },
+        {
+            "route": "upload",
+            "status": 202,
+            "expected": 202,
+            "milliseconds": 138.87
+        },
+        {
+            "route": "\/progress",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 1819.78
+        },
+        {
+            "route": "\/history",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 726.13
+        },
+        {
+            "route": "\/habits",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 245.06
+        },
+        {
+            "route": "owner isolation",
+            "status": 404,
+            "expected": 404,
+            "milliseconds": 10.29
+        },
+        {
+            "route": "upload",
+            "status": 202,
+            "expected": 202,
+            "milliseconds": 185.1
+        },
+        {
+            "route": "\/progress",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 1858.46
+        },
+        {
+            "route": "\/history",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 680.69
+        },
+        {
+            "route": "\/habits",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 241.01
+        },
+        {
+            "route": "owner isolation",
+            "status": 404,
+            "expected": 404,
+            "milliseconds": 12.57
+        },
+        {
+            "route": "upload",
+            "status": 202,
+            "expected": 202,
+            "milliseconds": 155.28
+        },
+        {
+            "route": "\/progress",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 1908.93
+        },
+        {
+            "route": "\/history",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 713.65
+        },
+        {
+            "route": "\/habits",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 243.5
+        },
+        {
+            "route": "owner isolation",
+            "status": 404,
+            "expected": 404,
+            "milliseconds": 8.36
+        },
+        {
+            "route": "upload",
+            "status": 202,
+            "expected": 202,
+            "milliseconds": 135.53
+        },
+        {
+            "route": "\/progress",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 1834.86
+        },
+        {
+            "route": "\/history",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 698.9
+        },
+        {
+            "route": "\/habits",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 240.47
+        },
+        {
+            "route": "owner isolation",
+            "status": 404,
+            "expected": 404,
+            "milliseconds": 18.37
+        },
+        {
+            "route": "upload",
+            "status": 202,
+            "expected": 202,
+            "milliseconds": 155.27
+        },
+        {
+            "route": "\/progress",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 1908
+        },
+        {
+            "route": "\/history",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 659.5
+        },
+        {
+            "route": "\/habits",
+            "status": 200,
+            "expected": 200,
+            "milliseconds": 247.57
+        },
+        {
+            "route": "owner isolation",
+            "status": 404,
+            "expected": 404,
+            "milliseconds": 8.66
+        },
+        {
+            "route": "upload",
+            "status": 202,
+            "expected": 202,
+            "milliseconds": 153.99
+        }
+    ]
+}

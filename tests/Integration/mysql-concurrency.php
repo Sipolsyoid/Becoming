@@ -88,7 +88,7 @@ function race(string $database, string $root, string $mode, array $habits, int $
     }
     try {
         $deadline = microtime(true) + 20;
-        while (! is_file($barrier.'/0-ready') || ! is_file($barrier.'/1-ready')) {
+        while (count(glob($barrier.'/*-ready')) !== count($habits)) {
             if (microtime(true) > $deadline) {
                 foreach ($processes as $process) {
                     $process->stop();
@@ -121,6 +121,10 @@ function race(string $database, string $root, string $mode, array $habits, int $
             }
         }
     }
+}
+
+if (defined('BECOMING_INTEGRATION_LIBRARY')) {
+    return;
 }
 
 $database = 'becoming_test_concurrency_'.bin2hex(random_bytes(6));
