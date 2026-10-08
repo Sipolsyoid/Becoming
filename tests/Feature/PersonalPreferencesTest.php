@@ -151,7 +151,7 @@ test('overlapping reminder runs skip locked users', function () {
     Notification::assertSentToTimes($user, HabitReminder::class, 1);
 });
 
-test('mail failures stay retryable and release the user lock', function () {
+test('uncertain mail failures block automatic retries and release the user lock', function () {
     $this->travelTo(Carbon::parse('2026-10-06 18:00:00', 'UTC'));
     $user = User::factory()->create(['reminders_enabled' => true]);
     Habit::factory()->create(['user_id' => $user->id]);
@@ -159,6 +159,10 @@ test('mail failures stay retryable and release the user lock', function () {
     $this->artisan('habits:send-reminders')->assertFailed();
     expect($user->fresh()->reminder_last_sent_on)->toBeNull();
     Notification::fake();
+    $this->artisan('habits:send-reminders')->assertSuccessful();
+    Notification::assertNothingSent();
+    $this->assertDatabaseHas('reminder_deliveries', ['user_id' => $user->id, 'local_date' => '2026-10-06', 'status' => 'uncertain']);
+    $this->travelTo(Carbon::parse('2026-10-07 18:00:00', 'UTC'));
     $this->artisan('habits:send-reminders')->assertSuccessful();
     Notification::assertSentToTimes($user, HabitReminder::class, 1);
 });

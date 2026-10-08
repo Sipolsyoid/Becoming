@@ -7,6 +7,7 @@ use App\Notifications\HabitReminder;
 use App\Services\HabitMetrics;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class SendHabitReminders extends Command
@@ -24,6 +25,7 @@ class SendHabitReminders extends Command
             if (! $lock->get()) {
                 continue;
             }
+            $deliveryId = null;
             try {
                 $user = $candidate->fresh();
                 if (! $user || ! $user->reminders_enabled) {
@@ -45,11 +47,31 @@ class SendHabitReminders extends Command
                 if ($pending->isEmpty()) {
                     continue;
                 }
+                // Commit the unique attempt before contacting SMTP. A crash must not
+                // cause another process to automatically send the same day's digest.
+                if (! DB::table('reminder_deliveries')->insertOrIgnore([
+                    'user_id' => $user->id, 'local_date' => $date,
+                    'status' => 'sending', 'attempted_at' => now(),
+                ])) {
+                    continue;
+                }
+                $deliveryId = DB::table('reminder_deliveries')->where('user_id', $user->id)
+                    ->where('local_date', $date)->value('id');
                 $user->notify(new HabitReminder($pending->pluck('name')->all(), $date));
-                $user->forceFill(['reminder_last_sent_on' => $date])->save();
+                DB::transaction(function () use ($user, $date, $deliveryId) {
+                    DB::table('reminder_deliveries')->where('id', $deliveryId)->update(['status' => 'sent', 'sent_at' => now()]);
+                    $user->forceFill(['reminder_last_sent_on' => $date])->save();
+                });
                 $sent++;
             } catch (Throwable $exception) {
                 report($exception);
+                if ($deliveryId) {
+                    try {
+                        DB::table('reminder_deliveries')->where('id', $deliveryId)->update(['status' => 'uncertain']);
+                    } catch (Throwable $recordingFailure) {
+                        report($recordingFailure); // The durable 'sending' claim still blocks retries.
+                    }
+                }
                 $failed++;
             } finally {
                 $lock->release();

@@ -30,6 +30,11 @@ class BecomingDoctor extends Command
             $applied = Schema::hasTable('migrations') ? DB::table('migrations')->pluck('migration')->all() : [];
             $missing = array_diff(array_keys($files), $applied);
             $check($missing ? 'fail' : 'ok', count($missing).' pending database migrations.');
+            if (Schema::hasTable('reminder_deliveries')) {
+                $uncertain = DB::table('reminder_deliveries')->where('status', 'uncertain')
+                    ->orWhere(fn ($query) => $query->where('status', 'sending')->where('attempted_at', '<', now()->subMinutes(5)))->count();
+                $check($uncertain ? 'warn' : 'ok', $uncertain.' reminder attempts need delivery review; automatic resend is blocked.');
+            }
         } catch (Throwable) {
             $check('fail', 'Database unavailable. Check your private database configuration.');
         }
