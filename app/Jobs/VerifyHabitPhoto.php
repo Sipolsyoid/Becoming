@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Contracts\PhotoVerifier;
 use App\Models\HabitCompletion;
-use App\Services\HabitPhotoVerifier;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Http\UploadedFile;
@@ -26,7 +26,7 @@ class VerifyHabitPhoto implements ShouldQueue
         $this->onConnection('photos')->onQueue('photos');
     }
 
-    public function handle(HabitPhotoVerifier $verifier): void
+    public function handle(PhotoVerifier $verifier): void
     {
         $claimed = HabitCompletion::whereKey($this->completionId)->where('verification_token', $this->token)
             ->where('verification_status', 'queued')->update(['verification_status' => 'checking', 'verification_started_at' => now()]);

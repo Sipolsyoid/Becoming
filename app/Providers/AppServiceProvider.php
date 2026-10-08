@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\PhotoVerifier;
+use App\Services\HabitPhotoVerifier;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Queue\Events\Looping;
@@ -17,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PhotoVerifier::class, fn ($app) => $app->make(HabitPhotoVerifier::class));
     }
 
     /**
