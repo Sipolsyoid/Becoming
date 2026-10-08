@@ -47,6 +47,7 @@ class BecomingDoctor extends Command
             $sender = config('mail.from.address', '');
             $validSender = filter_var($sender, FILTER_VALIDATE_EMAIL) && ! preg_match('/@(example\.(com|org|net)|localhost)$/i', $sender);
             $check($validSender ? 'ok' : 'warn', 'Real mail sender must be a verified address, not a placeholder.');
+            $check(config('mail.demo_recipient') ? 'warn' : 'ok', 'Demo sender restriction must be removed after domain verification for normal user delivery.');
         }
         if ($this->option('services')) {
             try {

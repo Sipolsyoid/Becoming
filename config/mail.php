@@ -15,6 +15,7 @@ return [
     */
 
     'default' => env('MAIL_MAILER', 'log'),
+    'demo_recipient' => env('MAIL_DEMO_RECIPIENT'),
 
     /*
     |--------------------------------------------------------------------------

@@ -24,6 +24,11 @@ class TestReminderMail extends Command
             return self::FAILURE;
         }
         $user = new User(['name' => 'Becoming delivery test', ...$values]);
+        if (config('mail.demo_recipient') && strcasecmp($values['email'], config('mail.demo_recipient')) !== 0) {
+            $this->error('Demo mail is restricted to the Resend account inbox. Verify a domain before sending to other recipients.');
+
+            return self::FAILURE;
+        }
         $reminder = new HabitReminder(['This is a test reminder; no habit progress was changed.'], $user->localToday()->toDateString());
         if (! $this->option('send')) {
             $this->info('Preview only. Add --send to send one reminder email through the configured mailer.');

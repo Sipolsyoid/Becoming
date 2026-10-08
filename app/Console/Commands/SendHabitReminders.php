@@ -31,6 +31,9 @@ class SendHabitReminders extends Command
                 if (! $user || ! $user->reminders_enabled) {
                     continue;
                 }
+                if (config('mail.demo_recipient') && strcasecmp($user->email, config('mail.demo_recipient')) !== 0) {
+                    continue;
+                }
                 $now = $user->localNow();
                 $date = $now->toDateString();
                 if ($now->format('H:i') < $user->reminder_time ||

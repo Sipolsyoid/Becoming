@@ -37,6 +37,9 @@
                 @if ($mailPreviewOnly)
                     <p class="error-message !mt-3" role="status">Email delivery is in preview mode. Reminders will not reach your inbox until outgoing email is configured.</p>
                 @endif
+                @if ($mailDemoOnly)
+                    <p class="error-message !mt-3" role="status">Email is in demonstration mode and can reach only the demonstration inbox. Normal reminders require outgoing email to be fully configured.</p>
+                @endif
             </section>
             <p class="quiet-note">Changing timezone can change today's date and the current week. Existing check-in dates stay as recorded; photos already submitted keep their captured date.</p>
             <button class="action-button" type="submit">Save preferences</button>

@@ -16,6 +16,7 @@ class SettingsController extends Controller
             'user' => $request->user(),
             'timezones' => DateTimeZone::listIdentifiers(),
             'mailPreviewOnly' => in_array(config('mail.default'), ['log', 'array'], true),
+            'mailDemoOnly' => (bool) config('mail.demo_recipient'),
         ]);
     }
 
