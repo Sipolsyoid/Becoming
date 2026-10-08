@@ -96,6 +96,11 @@ class HabitPhotoVerifier implements PhotoVerifier
             throw new RuntimeException('The AI response contained an invalid verdict.');
         }
 
+        if ($result['decision'] === 'approved' && PhotoEvidenceRequirements::hasUnverifiableMeasurement($habitName)) {
+            $result['decision'] = 'needs_review';
+            $result['reason'] = 'This photo may show the activity, but one image cannot establish the required duration, distance or total amount. This check is unconfirmed and earns no credit.';
+        }
+
         return $result;
     }
 }
