@@ -4,6 +4,7 @@ use App\Http\Controllers\HabitCompletionController;
 use App\Http\Controllers\HabitController;
 use App\Models\Habit;
 use App\Models\User;
+use App\Notifications\HabitReminder;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -11,6 +12,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\Process\Process;
@@ -58,6 +60,17 @@ if (($argv[1] ?? null) === '--child') {
     }
     $user = User::findOrFail($userId);
     $habit = Habit::findOrFail($habitId);
+    if ($mode === 'reminder') {
+        // Each child has its own array cache: the database claim, rather than
+        // a shared cache lock, must prevent duplicate notification attempts.
+        config(['mail.demo_recipient' => null]);
+        Notification::fake();
+        Artisan::call('habits:send-reminders');
+        File::put($barrier.'/'.$label.'-result.json', json_encode([
+            'status' => Notification::sent($user, HabitReminder::class)->count() ? 202 : 204,
+        ]));
+        exit(0);
+    }
     $files = $mode === 'upload' ? ['photo' => new UploadedFile(public_path('img/logo.jpeg'), 'proof.jpg', 'image/jpeg', null, true)] : [];
     $request = Request::create('/', 'POST', $mode === 'activate' ? ['is_daily' => 1] : [], [], $files);
     $request->headers->set('Accept', 'application/json');
@@ -161,6 +174,13 @@ try {
         throw new RuntimeException('Active-habit capacity concurrency invariant failed.');
     }
     echo "PASS: simultaneous activations cannot exceed the owner's active-habit cap.\n";
+    $user->update(['reminders_enabled' => true, 'reminder_time' => '00:00']);
+    if (race($database, $root, 'reminder', [$habit->id, $habit->id], $user->id) !== [202, 204]
+        || DB::table('reminder_deliveries')->count() !== 1
+        || DB::table('reminder_deliveries')->where('status', 'sent')->count() !== 1) {
+        throw new RuntimeException('Durable reminder claim concurrency invariant failed.');
+    }
+    echo "PASS: simultaneous reminder processes with separate caches attempt one notification.\n";
 } catch (Throwable $exception) {
     fwrite(STDERR, $exception->getMessage()."\n");
     $failed = true;
