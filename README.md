@@ -27,6 +27,8 @@ Verification runs on the dedicated `photos` database queue, with a 180-second Ol
 
 ## Verification
 
+`php artisan photos:evaluate --output=docs/verification/real-model.json` runs a small labelled suite against real Ollama: visible logo, unrelated photo, unverifiable distance, and instruction-like habit text. It changes no user records, returns failure for an unexpected approval/decision or unavailable provider, and can save verdicts and timings. Expand `tests/Fixtures/photo-evaluation.json` with consented, labelled real activity photos before making accuracy claims. The bundled four cases are smoke checks, not a representative accuracy or prompt-injection benchmark.
+
 - `node --test tests/js/photo-proof.test.js`: photo selection, client validation and duplicate-submit protection.
 - `php artisan test`: authentication and habit workflows, ownership, photo validation/retries, failure handling, statistics and streaks. Tests use a separate in-memory SQLite database.
 - `npm run build`: compile production assets.
