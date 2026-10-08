@@ -28,6 +28,7 @@
                                 </a>
                                 <p class="mt-3 font-semibold">{{ Str::headline($checkIn->ai_status ?? 'Not reviewed') }}</p>
                                 <p class="mt-1 text-sm break-words">{{ $checkIn->ai_reason ?: 'No AI feedback was recorded for this photo.' }}</p>
+                                @if($checkIn->ai_status === 'needs_review')<p class="mt-2 text-sm">Evidence was not confirmed and earns no completion credit. No human review is scheduled. Submit clearer evidence when the habit is due.</p>@endif
                             </div>
                         @endif
                         @if($checkIn->pending_photo_path)

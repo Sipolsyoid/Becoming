@@ -5,6 +5,7 @@
         <div class="check-feedback-heading"><span class="check-indicator" :class="{ 'check-pulse': pending }" aria-hidden="true" x-text="done ? '✓' : pending ? '◌' : '↻'"></span><strong x-text="title"></strong></div>
         <p x-show="pending">You can check in another habit or leave this page. Your result will be here when you return.</p>
         <p x-show="done">Your effort counts. Progress has been updated.</p>
+        <p x-show="check?.status === 'needs_review'">No completion credit was added. Submit clearer evidence when this habit is due. No human review is scheduled.</p>
         <p x-show="check?.reason && !done" x-text="check?.reason"></p>
         <p x-show="check?.worker_note" x-text="check?.worker_note"></p>
         <button x-show="check?.can_cancel" type="button" class="check-retry" @click="cancel()" :disabled="busy">Cancel queued check</button>
@@ -23,7 +24,7 @@
         @submit="submit($event)" x-show="!pending && !done" :aria-busy="busy" class="proof-form">
         @csrf
         <label for="photo-{{ $habit->id }}" class="text-sm font-semibold">Photo for {{ $habit->name }}</label>
-        <p class="text-xs text-slate-500">Show the activity clearly. A simple, well-lit photo works best.</p>
+        <p class="text-xs text-slate-500">Show the activity clearly. AI checks visible evidence and can make mistakes; one photo cannot establish time spent, distance travelled, or unseen actions.</p>
         <input id="photo-{{ $habit->id }}" type="file" name="photo" accept="image/jpeg,image/png,image/webp" required :disabled="busy"
             @change="select($event)" aria-describedby="photo-help-{{ $habit->id }}" class="proof-input">
         <p id="photo-help-{{ $habit->id }}" class="text-xs text-slate-500">JPG, PNG or WebP · up to 5 MB · stored privately</p>

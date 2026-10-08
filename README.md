@@ -19,6 +19,8 @@ The private storage directory is `storage/app/private`. PHP needs write access t
 
 ## Photo verification
 
+AI approval is an automated assessment of visible photo evidence, not objective proof that an activity's full duration or distance was completed. It can make mistakes. Prefer directly visible outcomes; a single photo cannot establish unseen actions, time spent, or distance travelled. `needs_review` means unconfirmed evidence, earns no completion credit, and asks the user to submit clearer evidence when due. There is no human-review queue or moderator role.
+
 Use your existing Ollama service and vision model. `OLLAMA_BASE_URL` and `OLLAMA_MODEL` select the service and model; the template defaults to `http://127.0.0.1:11434` and `gemma3:4b`. Start your service when testing real photos. Automated tests fake its responses and never need the real service.
 
 Verification runs on the dedicated `photos` database queue, with a 180-second Ollama HTTP timeout. Uploads return as soon as the file and job are saved. Only `approved` results count. An unsuccessful check preserves any previous completion and retains the new photo for retry; a valid verdict replaces the same day’s proof. Cleanup failures are logged without discarding a successfully saved new proof.

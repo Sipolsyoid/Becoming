@@ -5,7 +5,7 @@ export default (initial = null) => ({
     get done() { return this.check?.status === 'approved'; },
     get title() {
         return ({ queued: 'Photo saved. You can keep going.', checking: 'Checking your photo…', approved: 'A small win, recorded.',
-            needs_review: 'A clearer photo would help.', rejected: 'Let’s try a different photo.', failed: 'Your photo is safe. The check needs a retry.', cancelled: 'Queued check cancelled.' })[this.check?.status] || '';
+            needs_review: 'Photo evidence not confirmed.', rejected: 'Let’s try a different photo.', failed: 'Your photo is safe. The check needs a retry.', cancelled: 'Queued check cancelled.' })[this.check?.status] || '';
     },
     init() { if (this.pending) this.schedule(); },
     select(event) {
