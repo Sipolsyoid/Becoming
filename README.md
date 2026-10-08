@@ -31,6 +31,8 @@ Verification runs on the dedicated `photos` database queue, with a 180-second Ol
 
 ## Verification
 
+`php tests/Integration/mysql-concurrency.php` runs two separate PHP processes against a newly created temporary MySQL database and private storage directory. It verifies simultaneous uploads save one check-in/job/photo and simultaneous activations cannot exceed the active cap. It exercises controller transactions directly, not HTTP middleware or a general load benchmark. The configured MySQL account must be allowed to create/drop test databases. Existing application records and photos are never used; the uniquely named test schema and verified temporary directory are removed afterward. Do not run this on a production database server.
+
 `php artisan photos:evaluate --output=docs/verification/real-model.json` runs a small labelled suite against real Ollama: visible logo, unrelated photo, unverifiable distance, and instruction-like habit text. It changes no user records, returns failure for an unexpected approval/decision or unavailable provider, and can save verdicts and timings. Expand `tests/Fixtures/photo-evaluation.json` with consented, labelled real activity photos before making accuracy claims. The bundled four cases are smoke checks, not a representative accuracy or prompt-injection benchmark.
 
 - `node --test tests/js/photo-proof.test.js`: photo selection, client validation and duplicate-submit protection.
