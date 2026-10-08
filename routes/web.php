@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HabitCompletionController;
 use App\Http\Controllers\HabitController;
 use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgressController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/photo-checks/{completion}/cancel', [HabitCompletionController::class, 'cancel'])->name('checks.cancel');
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::patch('/settings', [SettingsController::class, 'update'])->name('settings.update');
+    Route::delete('/account', [ProfileController::class, 'destroy'])->name('account.destroy');
     Route::get('/', DashboardController::class)->name('dashboard');
 
     Route::get('/dashboard', function () {

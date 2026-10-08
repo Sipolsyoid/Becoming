@@ -34,6 +34,8 @@ Dates use each user’s saved timezone (UTC until changed in Settings). Historic
 
 ## Habit management
 
+Account deletion is available in Settings and requires the current password. The database deletion commits before the user's private photo directory is removed, including files no longer referenced by check-ins. Other users' files are unaffected. Storage failures are logged and the scheduled orphan cleaner retries remaining photos.
+
 Open **Habits** to edit names and categories, search by name, or filter by status and category. Names must be unique within your account, including archived habits. Editing details keeps existing completion records.
 
 **Archive** hides a habit from the current list, stops new check-ins and reminders, and records a pause from the current local day. Its earlier schedule and completion history remain available. Choose **Archived** in the status filter to restore it to its previous active or paused state. Photos already submitted can finish verification. Permanent deletion remains separate and removes completion history.

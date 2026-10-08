@@ -40,5 +40,16 @@
             </section>
             <button class="action-button" type="submit">Save preferences</button>
         </form>
+        <section class="insight-card mt-6" aria-labelledby="delete-account-heading">
+            <h2 id="delete-account-heading" class="text-lg font-semibold">Delete your account</h2>
+            <p class="mt-2 text-sm">This permanently deletes your account, habits, check-in history and uploaded photos.</p>
+            <form method="POST" action="{{ route('account.destroy') }}" class="mt-4 space-y-3" onsubmit="return confirm('Permanently delete your account and photos? This cannot be undone.');">
+                @csrf @method('DELETE')
+                <label for="delete-password" class="block text-sm font-medium">Current password</label>
+                <input id="delete-password" type="password" name="password" required autocomplete="current-password" class="block rounded-xl">
+                <x-input-error :messages="$errors->userDeletion->get('password')" />
+                <button class="action-button !bg-red-700" type="submit">Permanently delete account</button>
+            </form>
+        </section>
     </div>
 </x-app-layout>
