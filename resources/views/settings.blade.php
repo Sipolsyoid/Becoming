@@ -38,6 +38,7 @@
                     <p class="error-message !mt-3" role="status">Email delivery is in preview mode. Reminders will not reach your inbox until outgoing email is configured.</p>
                 @endif
             </section>
+            <p class="quiet-note">Changing timezone can change today's date and the current week. Existing check-in dates stay as recorded; photos already submitted keep their captured date.</p>
             <button class="action-button" type="submit">Save preferences</button>
         </form>
         <section class="insight-card mt-6" aria-labelledby="delete-account-heading">
