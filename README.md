@@ -34,6 +34,8 @@ Dates use each user’s saved timezone (UTC until changed in Settings). Historic
 
 ## Habit management
 
+Accounts can create at most 200 habits, with at most 30 active at once by default. Configure `MAX_TOTAL_HABITS` and `MAX_ACTIVE_HABITS`. Creating, resuming, and restoring check limits under the same owner row lock. Existing habits above a lowered limit remain intact; new additions/activations are rejected until capacity is available. This bounds the habit list and statistics work without deleting history.
+
 Account deletion is available in Settings and requires the current password. The database deletion commits before the user's private photo directory is removed, including files no longer referenced by check-ins. Other users' files are unaffected. Storage failures are logged and the scheduled orphan cleaner retries remaining photos.
 
 Open **Habits** to edit names and categories, search by name, or filter by status and category. Names must be unique within your account, including archived habits. Editing details keeps existing completion records.

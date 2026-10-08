@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\HabitSchedule;
 use App\Models\Habit;
+use App\Models\User;
 use App\Services\DeleteHabit;
+use App\Services\HabitLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -64,12 +66,14 @@ class HabitController extends Controller
             'is_daily' => ['nullable', 'boolean'],
         ]);
 
-        DB::transaction(fn () => $user->habits()->create([
-            ...$schedule,
-            'name' => $validated['name'],
-            'category' => $validated['category'] ?? null,
-            'is_daily' => $request->boolean('is_daily'),
-        ]));
+        DB::transaction(function () use ($user, $schedule, $validated, $request) {
+            User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+            app(HabitLimits::class)->check($user, true, $request->boolean('is_daily'));
+            $user->habits()->create([
+                ...$schedule, 'name' => $validated['name'], 'category' => $validated['category'] ?? null,
+                'is_daily' => $request->boolean('is_daily'),
+            ]);
+        });
 
         return redirect()->route('habits.index')->with('status', 'Habit added. Your next small step is ready.');
     }
@@ -102,8 +106,12 @@ class HabitController extends Controller
             'is_daily' => ['required', 'boolean'],
         ]);
 
-        DB::transaction(function () use ($habit, $validated) {
-            Habit::whereKey($habit->id)->lockForUpdate()->firstOrFail()->update(['is_daily' => (bool) $validated['is_daily']]);
+        DB::transaction(function () use ($habit, $validated, $request) {
+            User::whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
+            $current = Habit::whereKey($habit->id)->lockForUpdate()->firstOrFail();
+            abort_if($current->archived_at, 409, 'Restore this habit before editing it.');
+            app(HabitLimits::class)->check($request->user(), false, ! $current->is_daily && (bool) $validated['is_daily']);
+            $current->update(['is_daily' => (bool) $validated['is_daily']]);
         });
         $habit->refresh();
 
@@ -126,9 +134,11 @@ class HabitController extends Controller
     public function restore(Request $request, Habit $habit): RedirectResponse
     {
         abort_unless($habit->user_id === $request->user()->id, 404);
-        DB::transaction(function () use ($habit) {
+        DB::transaction(function () use ($habit, $request) {
+            User::whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             $habit = Habit::whereKey($habit->id)->lockForUpdate()->firstOrFail();
             if ($habit->archived_at) {
+                app(HabitLimits::class)->check($request->user(), false, $habit->archived_was_active);
                 $habit->forceFill(['archived_at' => null, 'is_daily' => $habit->archived_was_active])->save();
             }
         });

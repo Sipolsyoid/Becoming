@@ -18,6 +18,7 @@
 
                 <div class="relative p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-[#2B3E51]">{{ __('Add a habit') }}</h3>
+                    <p class="mt-1 text-sm">Account limits: {{ config('habits.max_active') }} active habits and {{ config('habits.max_total') }} total, including archived habits.</p>
                     <p class="mt-1 text-sm text-[#2B3E51]/70">{{ __('Choose something small enough to repeat. Choose daily habits, specific weekdays, or a flexible weekly target.') }}</p>
 
                     <form method="POST" action="{{ route('habits.store') }}" class="mt-6 grid gap-4 sm:grid-cols-6 items-end">
