@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\HabitSchedule;
 use App\Models\Habit;
+use App\Services\DeleteHabit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -163,8 +164,8 @@ class HabitController extends Controller
     {
         abort_unless($habit->user_id === $request->user()->id, 404);
 
-        $habit->delete();
+        app(DeleteHabit::class)->handle($habit);
 
-        return back()->with('status', 'Habit and completion history deleted.');
+        return back()->with('status', 'Habit, completion history and photos deleted.');
     }
 }

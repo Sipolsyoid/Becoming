@@ -30,7 +30,7 @@ Verification runs on the dedicated `photos` database queue, with a 180-second Ol
 - `npm run build`: compile production assets.
 - `composer check-platform-reqs`: check installed PHP requirements.
 
-Dates use each user’s saved timezone (UTC until changed in Settings). Historical percentages use the schedule recorded for each date and exclude dates before habit creation. Deleting a habit removes its database completions but retains photo files.
+Dates use each user’s saved timezone (UTC until changed in Settings). Historical percentages use the schedule recorded for each date and exclude dates before habit creation. Deleting a habit removes its database completions and deletes saved and pending photos after commit. File deletion failures are logged; scheduled orphan cleanup retries them after 24 hours.
 
 ## Habit management
 
