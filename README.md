@@ -129,3 +129,9 @@ php artisan queue:work photos --queue=photos --tries=1 --timeout=210
 The check-in card distinguishes uploading, queued, checking, approved, needs-review, rejected, and failed states. It polls only while a check is pending, backs off on network trouble, and pauses polling in hidden tabs. Approval updates daily totals, streaks, focus suggestions, and weekly totals without refreshing the page or clearing another selected photo. With JavaScript disabled, uploads still redirect and results can be checked by reloading.
 
 A failed or interrupted check offers **Retry saved photo**. A check stuck for ten minutes can also be retried; old workers cannot overwrite a newer attempt. Earlier unresolved checks remain on the dashboard (up to ten most recent), with their original local date. Pending checks never earn completion credit. The model's inference speed is unchanged; the app stays responsive while it works. Automated and browser checks use controlled verifier results, not a claim of real-model accuracy.
+
+## Windows background services
+
+From PowerShell, run `./scripts/background-services.ps1 -Action Start -PhpPath 'C:/path/to/php.exe'` to start hidden photo-worker and scheduler processes for this checkout. It works without PHP on PATH and does not start duplicate processes for the same checkout. `-Action Status` lists their PIDs; `-Action Stop` stops only matching processes for this project. Standard output/errors go to ignored timestamped files in `storage/logs`. The scheduler processes enabled reminders through your configured mailer.
+
+After deployment, stop then start these processes so they load the new code. Check `php artisan becoming:doctor --services --strict` after the next minute boundary. These local helpers stop when Windows shuts down and are not production supervision; production still needs a service manager and scheduled execution. Avoid running this helper and `composer run dev` together.
