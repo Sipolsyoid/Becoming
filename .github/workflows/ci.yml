@@ -1,0 +1,60 @@
+name: Verify Becoming
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci-only-password
+          MYSQL_DATABASE: becoming_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: becoming_ci
+      DB_USERNAME: root
+      DB_PASSWORD: ci-only-password
+      MAIL_MAILER: array
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, pdo_sqlite, gd, mbstring
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies from a clean checkout
+        run: |
+          cp .env.example .env
+          mkdir -p storage/app/private
+          composer install --no-interaction --prefer-dist
+          php artisan key:generate
+          npm ci
+          composer check-platform-reqs
+      - name: Build assets and test browser logic
+        run: |
+          npm run build
+          node --test tests/js/*.test.js
+      - name: Run isolated SQLite regression suite
+        run: DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan test --compact
+      - name: Verify fresh MySQL migrations and real concurrent requests
+        run: php tests/Integration/mysql-concurrency.php

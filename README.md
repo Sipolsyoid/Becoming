@@ -35,10 +35,12 @@ Verification runs on the dedicated `photos` database queue, with a 180-second Ol
 
 `php artisan photos:evaluate --output=docs/verification/real-model.json` runs a small labelled suite against real Ollama: visible logo, unrelated photo, unverifiable distance, and instruction-like habit text. It changes no user records, returns failure for an unexpected approval/decision or unavailable provider, and can save verdicts and timings. Expand `tests/Fixtures/photo-evaluation.json` with consented, labelled real activity photos before making accuracy claims. The bundled four cases are smoke checks, not a representative accuracy or prompt-injection benchmark.
 
-- `node --test tests/js/photo-proof.test.js`: photo selection, client validation and duplicate-submit protection.
+- `node --test tests/js/photo-proof.test.js tests/js/live-progress.test.js`: photo selection, cancellation, client validation, duplicate-submit protection and local-midnight dashboard refresh.
 - `php artisan test`: authentication and habit workflows, ownership, photo validation/retries, failure handling, statistics and streaks. Tests use a separate in-memory SQLite database.
 - `npm run build`: compile production assets.
 - `composer check-platform-reqs`: check installed PHP requirements.
+
+The GitHub workflow installs locked Composer/npm dependencies from a clean checkout, builds assets, runs SQLite regressions and JavaScript tests, and exercises fresh migrations plus concurrent controller requests against an isolated MySQL 8.0 service. It needs no real Ollama or SMTP server. A successful local run is separate from a successful GitHub run; pushing the commits triggers CI.
 
 Dates use each user’s saved timezone (UTC until changed in Settings). Historical percentages use the schedule recorded for each date and exclude dates before habit creation. Deleting a habit removes its database completions and deletes saved and pending photos after commit. File deletion failures are logged; scheduled orphan cleanup retries them after 24 hours.
 
