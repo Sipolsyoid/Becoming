@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth')->group(function () {
     Route::get('/photo-checks/{completion}', [HabitCompletionController::class, 'show'])->name('checks.show');
     Route::get('/photo-checks/{completion}/photo/{version}', [HabitCompletionController::class, 'photo'])->whereIn('version', ['saved', 'pending'])->name('checks.photo');
-    Route::post('/photo-checks/{completion}/retry', [HabitCompletionController::class, 'retry'])->name('checks.retry');
+    Route::post('/photo-checks/{completion}/retry', [HabitCompletionController::class, 'retry'])->middleware('throttle:photo-checks')->name('checks.retry');
     Route::post('/photo-checks/{completion}/cancel', [HabitCompletionController::class, 'cancel'])->name('checks.cancel');
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::patch('/settings', [SettingsController::class, 'update'])->name('settings.update');
@@ -34,7 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/habits/{habit}/move', [HabitController::class, 'move'])->name('habits.move');
     Route::delete('/habits/{habit}', [HabitController::class, 'destroy'])->name('habits.destroy');
     Route::post('/habits/{habit}/complete-with-photo', [HabitCompletionController::class, 'submitPhoto'])
-        ->name('habits.complete');
+        ->middleware('throttle:photo-checks')->name('habits.complete');
 
     Route::get('/history', HistoryController::class)->name('history');
 });

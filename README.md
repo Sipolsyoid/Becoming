@@ -44,6 +44,8 @@ Use **Up** and **Down** in the unfiltered current list to save your preferred or
 
 ## Reliable background checks
 
+Photo uploads and manual retries share per-user request limits: 20 per hour and 100 per rolling 24-hour window by default, including unsuccessful submissions. Configure `PHOTO_REQUESTS_PER_HOUR` and `PHOTO_REQUESTS_PER_DAY` and rebuild configuration after changing them. Rejected requests return HTTP 429 with `Retry-After`; viewing results and cancelling checks remain available. Use a shared persistent cache for limits across production workers/servers.
+
 The photo worker records a heartbeat while listening on the `photos` connection and queue. A photo queued for over two minutes shows a warning if no worker heartbeat has been seen for five minutes. This indicates worker availability, not Ollama health; queued photos remain saved. Restart workers after deploying so the heartbeat listener is loaded.
 
 `photos:recover` runs every minute through the Laravel scheduler. A check stuck in **checking** for over ten minutes is queued again once with a new verification token. Late results from the old job cannot overwrite it. A second interruption becomes **failed** and offers a manual retry. Queued checks are left waiting, avoiding repeated jobs when a worker is stopped. Keep `php artisan schedule:work` running locally or configure the production scheduler.
