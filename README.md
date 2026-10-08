@@ -4,6 +4,10 @@ A Laravel habit tracker with private photo evidence, Ollama verification, daily 
 
 ## Local setup
 
+After setup, run `php artisan becoming:doctor --services` for read-only checks of database migrations, private storage, queue configuration, Ollama model availability, recent worker/scheduler heartbeats and mail mode. Add `--strict` to fail on warnings. A heartbeat confirms recent activity, not successful photo or email processing; actual model evaluations and inbox delivery must be tested separately. No credentials or application key values are printed. Heartbeats need the app and worker to share a persistent cache.
+
+`composer run dev` starts the web server, photo worker, scheduler, logs and Vite together. Start MySQL and Ollama separately. If users enabled reminders and SMTP is configured, running the scheduler can send those due reminder emails. Production needs supervised queue workers, a task invoking `php artisan schedule:run` every minute, and real mail configuration. Serve only `public/`, keep `.env` private, enable HTTPS, disable debug, and restart workers after deploying.
+
 Requires PHP 8.3 or compatible newer 8.x with the Composer-required extensions, Composer, Node.js/npm, and MySQL. Run commands from this directory with the Laragon PHP and Node executables on PATH.
 
 1. Run `composer install` and `npm ci`.
