@@ -103,7 +103,7 @@ class HabitCompletionController extends Controller
                 $oldPending = $existing?->pending_photo_path;
                 $completion = $user->habitCompletions()->updateOrCreate(
                     ['habit_id' => $habit->id, 'completed_on' => $today->toDateString()],
-                    ['pending_photo_path' => $path, 'verification_token' => (string) Str::uuid(), 'verification_status' => 'queued',
+                    ['pending_photo_path' => $path, 'verification_habit_name' => $lockedHabit->name, 'verification_token' => (string) Str::uuid(), 'verification_status' => 'queued',
                         'verification_reason' => null, 'verification_started_at' => null, 'verification_recoveries' => 0, 'verification_requested_at' => now()],
                 );
                 // The database queue insert participates in this transaction on the default database.

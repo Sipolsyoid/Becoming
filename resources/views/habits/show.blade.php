@@ -27,6 +27,7 @@
                                     <span class="block mt-2 underline text-sm">Open full-size photo (new tab)</span>
                                 </a>
                                 <p class="mt-3 font-semibold">{{ Str::headline($checkIn->ai_status ?? 'Not reviewed') }}</p>
+                                @if($checkIn->photo_habit_name && $checkIn->photo_habit_name !== $habit->name)<p class="text-sm">Evaluated for: {{ $checkIn->photo_habit_name }}</p>@endif
                                 <p class="mt-1 text-sm break-words">{{ $checkIn->ai_reason ?: 'No AI feedback was recorded for this photo.' }}</p>
                                 @if($checkIn->ai_status === 'needs_review')<p class="mt-2 text-sm">Evidence was not confirmed and earns no completion credit. No human review is scheduled. Submit clearer evidence when the habit is due.</p>@endif
                             </div>
@@ -34,6 +35,7 @@
                         @if($checkIn->pending_photo_path)
                             <div class="border-t border-[#2B3E51]/10 pt-3">
                                 <p class="font-semibold">{{ $checkIn->photo_path ? 'Replacement photo' : 'Submitted photo' }}: {{ Str::headline($checkIn->verification_status) }}</p>
+                                @if($checkIn->verification_habit_name && $checkIn->verification_habit_name !== $habit->name)<p class="text-sm">Submitted for: {{ $checkIn->verification_habit_name }}</p>@endif
                                 <a href="{{ route('checks.photo', [$checkIn, 'pending']) }}" target="_blank" rel="noopener" class="block mt-3">
                                     <img src="{{ route('checks.photo', [$checkIn, 'pending']) }}" alt="Photo awaiting verification for {{ $habit->name }}" loading="lazy" class="w-full h-56 object-contain rounded-xl bg-[#FAF8F5]">
                                     <span class="block mt-2 underline text-sm">Open submitted photo (new tab)</span>

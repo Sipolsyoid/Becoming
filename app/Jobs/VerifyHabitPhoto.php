@@ -34,13 +34,14 @@ class VerifyHabitPhoto implements ShouldQueue
             return;
         }
         $completion = HabitCompletion::with('habit')->find($this->completionId);
-        if (! $completion?->habit) {
+        if (! $completion?->habit || $completion->verification_token !== $this->token) {
             return;
         }
         try {
             $photo = new UploadedFile(Storage::disk('local')->path($completion->pending_photo_path), 'proof.jpg', null, null, true);
-            $result = $verifier->verify($photo, $completion->habit->name);
-            $oldPath = DB::transaction(function () use ($completion, $result) {
+            $habitName = $completion->verification_habit_name ?? $completion->habit->name;
+            $result = $verifier->verify($photo, $habitName);
+            $oldPath = DB::transaction(function () use ($completion, $result, $habitName) {
                 $current = HabitCompletion::whereKey($this->completionId)->lockForUpdate()->first();
                 if (! $current || $current->verification_token !== $this->token || $current->verification_status !== 'checking') {
                     return null;
@@ -48,6 +49,7 @@ class VerifyHabitPhoto implements ShouldQueue
                 $old = $current->photo_path;
                 $current->update([
                     'photo_path' => $completion->pending_photo_path, 'pending_photo_path' => null,
+                    'photo_habit_name' => $habitName,
                     'ai_status' => $result['decision'], 'ai_reason' => $result['reason'], 'ai_result' => $result,
                     'analyzed_at' => now(), 'verification_status' => $result['decision'], 'verification_reason' => $result['reason'],
                 ]);

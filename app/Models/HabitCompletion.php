@@ -26,6 +26,8 @@ use Illuminate\Support\Facades\Cache;
     'verification_requested_at',
     'verification_started_at',
     'verification_recoveries',
+    'verification_habit_name',
+    'photo_habit_name',
 ])]
 class HabitCompletion extends Model
 {

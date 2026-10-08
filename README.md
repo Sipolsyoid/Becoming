@@ -66,6 +66,8 @@ Click a photo to enlarge it in a new browser tab; this also works without JavaSc
 
 History contains one record per habit per date, not every upload attempt. Replacing a photo replaces that date's result after verification; superseded images are not retained. No migration is required for this feature.
 
+New photo submissions capture the habit description at upload time, so renaming a habit while it is queued cannot change what the model evaluates. History shows the evaluated description when it differs from the current name. Older records had no description snapshot and use the existing habit name as a compatibility fallback; their original wording cannot be reconstructed. Run migrations for the description fields.
+
 ## Custom schedules
 
 Habits support every day, selected weekdays, or a flexible target of 1–7 times per week. Choose a schedule when adding a habit, or expand **Change schedule** on an existing habit. **Pause** keeps the schedule and completion records; **Resume** restores it. Existing active habits remain daily after migration, and previously inactive habits remain paused.
