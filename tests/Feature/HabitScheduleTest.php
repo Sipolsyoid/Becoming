@@ -92,7 +92,7 @@ test('weekly goals reset Monday and stay outside daily statistics', function () 
 test('off-day and paused uploads are rejected before inference', function () {
     $habit = Habit::factory()->create(['schedule_type' => 'weekdays', 'weekdays' => [2]]);
     $this->actingAs($habit->user)->post('/habits/'.$habit->id.'/complete-with-photo')->assertSessionHasErrors('photo');
-    $habit->update(['is_daily' => false, 'schedule_type' => 'weekly', 'weekly_target' => 2]);
+    $habit->update(['is_daily' => false, 'schedule_type' => 'weekly', 'weekly_target' => 2, 'weekdays' => null]);
     $this->post('/habits/'.$habit->id.'/complete-with-photo')->assertSessionHasErrors('photo');
     Http::assertNothingSent();
 });

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ScheduleRules;
 use Carbon\CarbonInterface;
 use Database\Factories\HabitFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -20,6 +21,11 @@ class Habit extends Model
 
     protected static function booted(): void
     {
+        static::saving(function (Habit $habit) {
+            $values = ScheduleRules::validate(['schedule_type' => $habit->schedule_type, 'weekdays' => $habit->weekdays, 'weekly_target' => $habit->weekly_target]);
+            $habit->weekdays = $values['weekdays'] ?? null;
+        });
+
         static::creating(function (Habit $habit) {
             $habit->sort_order = ((int) static::where('user_id', $habit->user_id)->max('sort_order')) + 1;
         });
