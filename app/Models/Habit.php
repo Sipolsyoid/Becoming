@@ -54,7 +54,24 @@ class Habit extends Model
 
     public function scheduleOn(CarbonInterface $date): ?HabitScheduleVersion
     {
-        return $this->scheduleVersions->last(fn ($version) => $version->effective_on <= $date->toDateString());
+        $versions = $this->scheduleVersions;
+        $key = $date->toDateString();
+        $low = 0;
+        $high = $versions->count() - 1;
+        $match = null;
+        // The relation is ordered by effective_on: find the last applicable version in O(log V).
+        while ($low <= $high) {
+            $middle = intdiv($low + $high, 2);
+            $version = $versions[$middle];
+            if ($version->effective_on <= $key) {
+                $match = $version;
+                $low = $middle + 1;
+            } else {
+                $high = $middle - 1;
+            }
+        }
+
+        return $match;
     }
 
     protected function casts(): array
