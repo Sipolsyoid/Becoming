@@ -5,6 +5,7 @@ use App\Http\Controllers\HabitController;
 use App\Models\Habit;
 use App\Models\User;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
@@ -137,6 +138,12 @@ try {
     Artisan::call('migrate', ['--force' => true]);
     $user = User::factory()->create();
     $habit = Habit::factory()->create(['user_id' => $user->id]);
+    try {
+        DB::table('habits')->where('id', $habit->id)->update(['schedule_type' => 'weekdays', 'weekdays' => '[1.0]']);
+        throw new RuntimeException('MySQL accepted a fractional JSON weekday that strict schedule comparisons cannot use.');
+    } catch (QueryException) {
+        echo "PASS: MySQL rejects fractional JSON weekdays.\n";
+    }
     if (race($database, $root, 'upload', [$habit->id, $habit->id], $user->id) !== [202, 422]
         || $habit->completions()->count() !== 1 || DB::table('jobs')->count() !== 1
         || count(Storage::disk('local')->allFiles('habit-proofs')) !== 1) {

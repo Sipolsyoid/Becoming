@@ -23,6 +23,7 @@ test('database rejects invalid schedule changes on habits and history snapshots'
     'out of range weekday' => [['schedule_type' => 'weekdays', 'weekdays' => '[8]']],
     'duplicate weekdays' => [['schedule_type' => 'weekdays', 'weekdays' => '[1,1]']],
     'string weekday' => [['schedule_type' => 'weekdays', 'weekdays' => '["1"]']],
+    'fractional JSON weekday' => [['schedule_type' => 'weekdays', 'weekdays' => '[1.0]']],
 ]);
 
 test('weekday model values are normalized for strict historical comparisons', function () {
